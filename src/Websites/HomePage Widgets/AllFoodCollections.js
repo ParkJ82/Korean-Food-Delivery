@@ -42,7 +42,7 @@ function AllFoodCollections(input) {
 
 
     return (
-        <div className="d-flex flex-row">
+        <div id="accordion" className="d-flex flex-row">
             {foodlist}
         </div>
     )

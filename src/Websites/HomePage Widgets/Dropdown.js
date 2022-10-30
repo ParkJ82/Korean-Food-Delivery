@@ -1,9 +1,9 @@
 import React, { useState }  from "react";
+import Dropdown from "react-bootstrap/Dropdown";
 
 
 
-
-function Dropdown() {
+function DropDown() {
 
     // window.onload = function() {
     //     var categoryClasses = document.querySelectorAll(".category");
@@ -48,23 +48,22 @@ function Dropdown() {
             
         // </div>
         <div className="p-2">
-        <div className="dropdown">
-            <button type="button" className="btn btn-primary dropdown-toggle"
-            data-bs-toggle="dropdown">전체 보기</button>
-            <ul className="dropdown-menu">
-                <li><a className="dropdown-item" href="/all">전체 보기</a></li>
-                <li><a className="dropdown-item" href="/meat">고기류</a></li>
-                <li><a className="dropdown-item" href="/soup">국/찌개</a></li>
-                <li><a className="dropdown-item" href="/noodle">면류</a></li>
-                <li><a className="dropdown-item" href="/vegetable">야채류</a></li>
-                <li><a className="dropdown-item" href="/unidentified">미분류</a></li>
-            </ul>
+        <Dropdown>
+            <Dropdown.Toggle id="dropdown-basic">전체 보기</Dropdown.Toggle>
+            <Dropdown.Menu>
+                <Dropdown.Item href="/all">전체 보기</Dropdown.Item>
+                <Dropdown.Item href="/meat">고기류</Dropdown.Item>
+                <Dropdown.Item href="/soup">국/찌개</Dropdown.Item>
+                <Dropdown.Item href="/noodle">면류</Dropdown.Item>
+                <Dropdown.Item href="/vegetable">야채류</Dropdown.Item>
+                <Dropdown.Item href="/unidentified">미분류</Dropdown.Item>
+            </Dropdown.Menu>
             
-        </div>
+        </Dropdown>
         </div>
     )
 }  
 
 
 
-export default Dropdown;
+export default DropDown;

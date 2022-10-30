@@ -1,7 +1,7 @@
 import React from "react";
 import TopWidget from "../../Global Widgets/TopWidget";
 import '../../components/LetterFonts.css';
-import Dropdown from "../Dropdown";
+import DropDown from "../Dropdown";
 import AllFoodCollections from "../AllFoodCollections";
 
 
@@ -18,7 +18,7 @@ function HomePage(input) {
 
         <p>주의: 몇몇 음식은 주마다 바뀜</p>
 
-        {<Dropdown />}
+        {<DropDown />}
 
         {<AllFoodCollections category = {input.category} />}
 
