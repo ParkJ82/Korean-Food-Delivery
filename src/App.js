@@ -1,10 +1,9 @@
 import React from "react";
-import {BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
+import {Route, Routes} from "react-router-dom";
 import CreateAccountWebsite from './Websites/Create Account Widget/CreateAccount';
 import HomePage from './Websites/HomePage Widgets/master/HomePage';
 import Login from "./Websites/Login Widgets/Login";
 import FoodSpecifics from "./Websites/Food Specific Widgets/FoodSpecifics";
-import jQuery from "jquery";
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 

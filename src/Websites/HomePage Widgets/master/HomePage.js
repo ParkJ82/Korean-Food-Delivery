@@ -3,6 +3,7 @@ import TopWidget from "../../Global Widgets/TopWidget";
 import '../../components/LetterFonts.css';
 import DropDown from "../Dropdown";
 import AllFoodCollections from "../AllFoodCollections";
+import OptionRadio from "../OptionRadio";
 
 
 function HomePage(input) {
@@ -18,7 +19,7 @@ function HomePage(input) {
 
         <p>주의: 몇몇 음식은 주마다 바뀜</p>
 
-        {<DropDown />}
+        {<DropDown />} {<OptionRadio />}
 
         {<AllFoodCollections category = {input.category} />}
 

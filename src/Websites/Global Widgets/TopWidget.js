@@ -1,27 +1,41 @@
 import React from "react";
-import {Link} from "react-router-dom";
+import Container from "react-bootstrap/Container";
+import Nav from "react-bootstrap/Nav";
+import Navbar from "react-bootstrap/Navbar";
+
 
 const TopWidget = () => {
     return (
-        <div className="container-fluid text-bg-info">
-            <div className="alert alert-danger">
-            뉴욕대학교 학생들 전체 메뉴 <strong>$1 할인</strong>
-            </div>
-            <div className="text-bg-info">
-                <button className="text-bg-info">
-                    <h1><a href="/">한반 - 초간단 한인 반찬 배달</a></h1>
-                </button>
-                <Link to="/createaccount" className="LinkRegister">회원가입</Link>
-
-                <Link to="/login" className="LinkLogin">로그인</Link>
-
-                <button type="button" className="btn btn-warning">고객센터</button>
-
-                <button type="button" className="btn btn-warning">점포면 회사 가입하기!</button>
+        <>
+        <Navbar bg="dark" variant="dark">
+            <Container>
+                <Navbar.Brand href="/">
+                    한반 - 초간단 한인 반찬 배달
+                </Navbar.Brand>
+                <Nav className="me-auto">
+                    <Nav.Link>
+                    고객센터
+                    </Nav.Link>
+                    <Nav.Link>
+                        점포면 회사 가입하기!
+                    </Nav.Link>
+                </Nav>
                 
-            </div>
-            <p className="TopWidget">간단하게 고르고 바로 구매하자!</p>
-        </div>
+                <Nav className="ms-auto">
+                    <Nav.Link href="/createaccount">
+                        <button type="button" className="btn btn-warning">회원가입</button>
+                    </Nav.Link>
+                    <Nav.Link href="/login">
+                        <button type="button" className="btn btn-warning">로그인</button>
+                    </Nav.Link>
+                </Nav>
+                
+
+                
+                
+            </Container>
+        </Navbar>
+        </>
     );
 };
 
