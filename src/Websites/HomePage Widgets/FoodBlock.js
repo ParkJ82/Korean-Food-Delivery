@@ -18,16 +18,16 @@ import "../components/LetterFonts.css";
 function FoodBlock(properties) {
     return (
         <div className="dropdown">
-            <button type="submit" className="dropBtnBlock">
-
-                
-                
-                    <p className="blockText">{properties.name}</p>
-                    <p className="blockText">{properties.price}</p>
+            <button type="button" className="btn btn-primary dropdown-toggle"
+            data-bs-toggle="dropdown">
+                <p className="blockText">{properties.name}</p>
+                <p className="blockText">{properties.price}</p>
             </button>
-            <div className="dropdown-content">
-            <a href={properties.englishName}>제품 상세보기</a>
-            </div>
+            <ul className="dropdown-menu">
+                <li>
+                    <a className="dropdown-item" href={properties.englishName}>제품 상세보기</a>
+                </li>
+            </ul>
 
         </div>
         

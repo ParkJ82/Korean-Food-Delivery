@@ -4,6 +4,7 @@ import CreateAccountWebsite from './Websites/Create Account Widget/CreateAccount
 import HomePage from './Websites/HomePage Widgets/master/HomePage';
 import Login from "./Websites/Login Widgets/Login";
 import FoodSpecifics from "./Websites/Food Specific Widgets/FoodSpecifics";
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 
 const App = () => {
@@ -83,26 +84,23 @@ const App = () => {
 
 
   return (
-    <Router>
       <div>
-
-      <Routes>
-        <Route exact path="/" element={<HomePage category={"전체 보기"}/>}/>
-        <Route path="/createaccount" element={<CreateAccountWebsite />}/>
-        <Route path="/login" element={<Login />}/>
-        <Route path="/all" element={<HomePage category={"전체 보기"}/>}/>
-        <Route path="/meat" element={<HomePage category={"고기류"}/>}/>
-        <Route path="/soup" element={<HomePage category={"국/찌개"}/>}/>
-        <Route path="/noodle" element={<HomePage category={"면류"}/>}/>
-        <Route path="/vegetable" element={<HomePage category={"야채류"}/>}/>
-        <Route path="/unidentified" element={<HomePage category={"미분류"}/>}/>
-        <Route path="/category/example" element={<FoodSpecifics />}/>
-        {foodRoutes}
+        <Routes>
+          <Route exact path="/" element={<HomePage category={"전체 보기"}/>}/>
+          <Route path="/createaccount" element={<CreateAccountWebsite />}/>
+          <Route path="/login" element={<Login />}/>
+          <Route path="/all" element={<HomePage category={"전체 보기"}/>}/>
+          <Route path="/meat" element={<HomePage category={"고기류"}/>}/>
+          <Route path="/soup" element={<HomePage category={"국/찌개"}/>}/>
+          <Route path="/noodle" element={<HomePage category={"면류"}/>}/>
+          <Route path="/vegetable" element={<HomePage category={"야채류"}/>}/>
+          <Route path="/unidentified" element={<HomePage category={"미분류"}/>}/>
+          <Route path="/category/example" element={<FoodSpecifics />}/>
+          {foodRoutes}
+        </Routes>
         
-      </Routes> 
       
       </div>
-    </Router>
     
   );
 }

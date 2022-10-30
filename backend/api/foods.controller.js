@@ -39,6 +39,14 @@ export default class FoodsCtrl {
     }
 
     static async apiGetFoodCategories(id) {
-
+        try {
+            let categories = await FoodsDAO.getCategories()
+            res.json(categories)
+        } catch (e) {
+            console.log(`api, ${e}`)
+            res.status(500).json({ error: e })
+        }
     }
+
+    
 }

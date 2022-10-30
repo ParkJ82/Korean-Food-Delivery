@@ -34,18 +34,33 @@ function Dropdown() {
 
     return (
 
-        <div className="dropdown">
+        // <div className="dropdown">
         
-            <button className="dropbtn">전체 보기</button>
-            <div className="dropdown-content">
-                <a href="/all" className="category">전체 보기</a>
-                <a href="/meat" className="category">고기류</a>
-                <a href="/soup" className="category">국/찌개</a>
-                <a href="/noodle" className="category">면류</a>
-                <a href="/vegetable" className="category">야채류</a>
-                <a href="/unidentified" className="category">미분류</a>
-            </div>
+        //     <button className="dropbtn">전체 보기</button>
+        //     <div className="dropdown-content">
+        //         <a href="/all" className="category">전체 보기</a>
+        //         <a href="/meat" className="category">고기류</a>
+        //         <a href="/soup" className="category">국/찌개</a>
+        //         <a href="/noodle" className="category">면류</a>
+        //         <a href="/vegetable" className="category">야채류</a>
+        //         <a href="/unidentified" className="category">미분류</a>
+        //     </div>
             
+        // </div>
+        <div className="p-2">
+        <div className="dropdown">
+            <button type="button" className="btn btn-primary dropdown-toggle"
+            data-bs-toggle="dropdown">전체 보기</button>
+            <ul className="dropdown-menu">
+                <li><a className="dropdown-item" href="/all">전체 보기</a></li>
+                <li><a className="dropdown-item" href="/meat">고기류</a></li>
+                <li><a className="dropdown-item" href="/soup">국/찌개</a></li>
+                <li><a className="dropdown-item" href="/noodle">면류</a></li>
+                <li><a className="dropdown-item" href="/vegetable">야채류</a></li>
+                <li><a className="dropdown-item" href="/unidentified">미분류</a></li>
+            </ul>
+            
+        </div>
         </div>
     )
 }  

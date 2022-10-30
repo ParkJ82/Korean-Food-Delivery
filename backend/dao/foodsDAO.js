@@ -94,11 +94,30 @@ export default class FoodsDAO {
     }
 
     static async getFoodByID(id) {
-        const pipeline = [
-            {
-                
-            }
-        ]
+        try {
+            const pipeline = [
+                {
+                    $match: {
+                        _id: new ObjectID(id),
+                    },
+                },
+            ]
+          return await foods.aggregate(pipeline).next()
+        } catch (e) {
+            console.error(`Something went wrong in getFoodByID: ${e}`)
+            throw e
+        }
+    }
+
+    static async getCategories() {
+        let categories = []
+        try {
+            categories = await foods.distinct("category")
+            return categories
+        } catch (e) {
+            console.error(`Unable to get categories, ${e}`)
+            return categories
+        }
     }
 
 }
