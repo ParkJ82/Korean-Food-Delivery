@@ -2,12 +2,13 @@ import React from "react";
 import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
+import Button from "react-bootstrap/Button";
 
 
 const TopWidget = () => {
     return (
         <>
-        <Navbar bg="dark" variant="dark">
+        <Navbar bg="dark" variant="dark" sticky="top">
             <Container>
                 <Navbar.Brand href="/">
                     한반 - 초간단 한인 반찬 배달
@@ -23,10 +24,10 @@ const TopWidget = () => {
                 
                 <Nav className="ms-auto">
                     <Nav.Link href="/createaccount">
-                        <button type="button" className="btn btn-warning">회원가입</button>
+                        <Button className="btn btn-success">회원가입</Button>
                     </Nav.Link>
                     <Nav.Link href="/login">
-                        <button type="button" className="btn btn-warning">로그인</button>
+                        <Button className="btn btn-success">로그인</Button>
                     </Nav.Link>
                 </Nav>
                 

@@ -1,21 +1,24 @@
-import React, { useState } from "react";
+import React from "react";
+import Card from "react-bootstrap/Card";
+import Button from "react-bootstrap/Button";
 
 function FoodBlock(properties) {
-    const [open, setOpen] = useState(false);
 
     return (
-        <div className="card">
-            <div className="card-body" onClick={() => setOpen(!open)}>
-                <a href={properties.englishName}>
-                    {properties.name}
-                    <br/>
-                    {properties.price}
-                </a>
-                    
-            </div>
-            
+        <Card style={{ width: '18rem' }}>
+            <Card.Img variant="top" src="holder.js/100px180" />
+            <Card.Body>
+                    <Card.Title>
+                        {properties.name}
+                    </Card.Title>
+                    <Card.Text>
+                        {properties.price}
+                    </Card.Text>    
+                <Button className="btn btn-danger btn-sm" href={properties.englishName}>상세보기</Button>
 
-        </div>
+                <Button className="btn btn-primary btn-sm">장바구니에 담기</Button>
+            </Card.Body>
+        </Card>
         
     );
 }

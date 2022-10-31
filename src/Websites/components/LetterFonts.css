@@ -16,29 +16,12 @@
     text-decoration: none;
 }
 
-
-
-
-.account-input {
-    border-width: 1px;
-}
-
-.account {
-    font-size: 18px;
-}
-
-.mainWidget {
-    height: 35px;
-}
-
-.homepage {
-    display: block;
-    color: #000000;
-    padding: 5px;
-    text-decoration: none;
-    background-color: #00A4BD;
-}
-
-.blockText {
-    color: black;
-}
+#password{
+    -webkit-text-security: disc;
+      -moz-text-security:circle;
+  }
+  input[type=number]::-webkit-inner-spin-button, 
+  input[type=number]::-webkit-outer-spin-button { 
+    -webkit-appearance: none; 
+    margin: 0; 
+  }  

@@ -5,6 +5,8 @@ import HomePage from './Websites/HomePage Widgets/master/HomePage';
 import Login from "./Websites/Login Widgets/Login";
 import FoodSpecifics from "./Websites/Food Specific Widgets/FoodSpecifics";
 import 'bootstrap/dist/css/bootstrap.min.css';
+import Purchase from "./Websites/Purchase";
+import ShoppingCart from "./Websites/Shopping Cart/ShoppingCart";
 
 
 const App = () => {
@@ -95,6 +97,8 @@ const App = () => {
           <Route path="/noodle" element={<HomePage category={"면류"}/>}/>
           <Route path="/vegetable" element={<HomePage category={"야채류"}/>}/>
           <Route path="/unidentified" element={<HomePage category={"미분류"}/>}/>
+          <Route path="/purchase" element={<Purchase />}/>
+          <Route path="/shoppingcart" element={<ShoppingCart />}/>
           <Route path="/category/example" element={<FoodSpecifics />}/>
           {foodRoutes}
         </Routes>

@@ -3,7 +3,9 @@ import TopWidget from "../../Global Widgets/TopWidget";
 import '../../components/LetterFonts.css';
 import DropDown from "../Dropdown";
 import AllFoodCollections from "../AllFoodCollections";
-import OptionRadio from "../OptionRadio";
+import Button from "react-bootstrap/Button"
+import Alert from "react-bootstrap/Alert";
+import Container from "react-bootstrap/Container"
 
 
 function HomePage(input) {
@@ -12,19 +14,23 @@ function HomePage(input) {
     return (
 
     <div className="HomePage">
-        
-        {<TopWidget />}
 
-        <p>요리종류으로 골라보기:</p>
+        {<TopWidget />}
+        
+        <Alert><h1>이번주 행사:</h1></Alert>
+
+        
 
         <p>주의: 몇몇 음식은 주마다 바뀜</p>
 
-        {<DropDown />} {<OptionRadio />}
+        {<DropDown />} 
 
         {<AllFoodCollections category = {input.category} />}
 
-        <button>바로 구매하기</button>
-        <button>장바구니에 담기</button>
+
+        <Button href="/purchase" className="btn btn-warning">바로 구매하기</Button>
+        <Button href="/shoppingcart" className="btn btn-warning">장바구니 보기</Button>
+        
 
     </div>
     )
