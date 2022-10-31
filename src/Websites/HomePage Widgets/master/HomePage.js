@@ -17,13 +17,13 @@ function HomePage(input) {
 
         {<TopWidget />}
         
-        <Alert><h1>이번주 행사:</h1></Alert>
+        <Alert><h3>(주의) 업체마다 배달 미니멈이 있음:</h3></Alert>
 
         
 
         <p>주의: 몇몇 음식은 주마다 바뀜</p>
-
-        {<DropDown />} 
+        
+        {<DropDown category = {input.category} />} 
 
         {<AllFoodCollections category = {input.category} />}
 

@@ -14,7 +14,7 @@ const TopWidget = () => {
                     한반 - 초간단 한인 반찬 배달
                 </Navbar.Brand>
                 <Nav className="me-auto">
-                    <Nav.Link>
+                    <Nav.Link href="/customerservice">
                     고객센터
                     </Nav.Link>
                     <Nav.Link>

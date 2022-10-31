@@ -22,7 +22,7 @@ function AllFoodCollections(input) {
     }
     
     var filter;
-    if (input.category == "전체 보기") {
+    if (input.category == "전체 음식") {
         filter = "All"
     }
     else {

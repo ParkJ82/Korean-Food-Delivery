@@ -16,6 +16,10 @@
     text-decoration: none;
 }
 
+.div-inline{
+    display: inline-block;
+}
+
 #password{
     -webkit-text-security: disc;
       -moz-text-security:circle;

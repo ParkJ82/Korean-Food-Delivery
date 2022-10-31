@@ -7,6 +7,7 @@ import FoodSpecifics from "./Websites/Food Specific Widgets/FoodSpecifics";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Purchase from "./Websites/Purchase";
 import ShoppingCart from "./Websites/Shopping Cart/ShoppingCart";
+import CustomerService from "./Websites/Customer Service/CustomerService";
 
 
 const App = () => {
@@ -88,10 +89,10 @@ const App = () => {
   return (
       <div>
         <Routes>
-          <Route exact path="/" element={<HomePage category={"전체 보기"}/>}/>
+          <Route exact path="/" element={<HomePage category={"전체 음식"}/>}/>
           <Route path="/createaccount" element={<CreateAccountWebsite />}/>
           <Route path="/login" element={<Login />}/>
-          <Route path="/all" element={<HomePage category={"전체 보기"}/>}/>
+          <Route path="/all" element={<HomePage category={"전체 음식"}/>}/>
           <Route path="/meat" element={<HomePage category={"고기류"}/>}/>
           <Route path="/soup" element={<HomePage category={"국/찌개"}/>}/>
           <Route path="/noodle" element={<HomePage category={"면류"}/>}/>
@@ -99,7 +100,8 @@ const App = () => {
           <Route path="/unidentified" element={<HomePage category={"미분류"}/>}/>
           <Route path="/purchase" element={<Purchase />}/>
           <Route path="/shoppingcart" element={<ShoppingCart />}/>
-          <Route path="/category/example" element={<FoodSpecifics />}/>
+          <Route path="/delivery/example" element={<FoodSpecifics />}/>
+          <Route path="/customerservice" element={<CustomerService />}/>
           {foodRoutes}
         </Routes>
         
