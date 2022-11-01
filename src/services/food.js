@@ -2,31 +2,31 @@ import http from "../http-common";
 
 class FoodDataService {
     getAll(page = 0) {
-        return http.get(`?page=${page}`);
+        return http.get(`/foods?page=${page}`);
     }
 
     get(id) {
-        return http.get(`/id/${id}`)
+        return http.get(`/foods/id/${id}`)
     }
 
     find(query, by = "name", page = 0) {
-        return http.get(`?${by}=${query}&page=${page}`)
+        return http.get(`/foods?${by}=${query}&page=${page}`)
     }
 
     createFood(data) {
-        return http.post("/food", data);
+        return http.post("/foods/food", data);
     }
 
     updateFood(data) {
-        return http.put("/food", data);
+        return http.put("/foods/food", data);
     }
 
     deleteFood(id) {
-        return http.delete(`/food?id=${id}`);
+        return http.delete(`/foods/food?id=${id}`);
     }
 
-    getCategories(id) {
-        return http.get(`/categories`);
+    getCategories() {
+        return http.get(`/foods/categories`);
     }
 
 }

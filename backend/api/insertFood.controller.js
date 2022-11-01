@@ -8,7 +8,7 @@ export default class InsertFood {
             const foodCategory = req.body.category
             const foodPrice = req.body.price
 
-            const FoodResponse = await foodsDAO.addFood(
+            const foodResponse = await foodsDAO.addFood(
                 foodName,
                 foodEnglishName,
                 foodCategory,
@@ -54,12 +54,15 @@ export default class InsertFood {
     }
 
     static async apiDeleteFood(req, res, next) {
+    try {
         const foodId = req.body._id
         const foodResponse = await foodsDAO.deleteFood(
             foodId
         )
         res.json({ status: "success" })
+        
     } catch (e) {
         res.status(500).json({ error: e.message })
+    }
     }
 }

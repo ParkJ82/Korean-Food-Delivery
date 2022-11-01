@@ -8,59 +8,10 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import Purchase from "./Websites/Purchase";
 import ShoppingCart from "./Websites/Shopping Cart/ShoppingCart";
 import CustomerService from "./Websites/Customer Service/CustomerService";
+import NewCompany from "./Websites/Widgets For Companies/NewCompany";
 
 
 const App = () => {
-
-  // var csv = require("jquery-csv");
-  // var rawData = $.get(url)
-  // var data = $.csv.toObjects(rawData);
-  // console.log(data);
-
-
-
-  // Papa.parse("FoodData.csv", {
-  //   complete: function(results) {
-  //       console.log(results);
-  //   }
-  // });
-
-  // const fs = require("fs");
-  // const { parse } = require("csv-parse");
-
-  // const data = [];
-  // fs.createReadStream("FoodData.csv")
-  //   .pipe(
-  //     parse({
-  //     delimiter: ",",
-  //     columns: true,
-  //     ltrim: true,
-  //     })
-  //   )
-  //   .on("data", function (row) {
-  //     data.push(row);
-  //   })
-  //   .on("error", function (error) {
-  //     console.log(error.message);
-  //   })
-  //   .on("end", function () {
-  //     console.log("parsed csv data: ");
-  //     console.log(data);
-  //   });
-
-  // var data;
-  //   $.ajax({
-  //     type: "GET",  
-  //     url: "./FoodData.csv",
-  //     dataType: "text",       
-  //     success: function(response)  
-  //     {
-  //       data = $.csv.toArrays(response);
-  //     }   
-  //   });
-  //   console.log(data);
-  
-  // var shoppingCart = [];
 
   const FOODDATA = [
     {id: 0, name: "된장찌개", englishName: "soybean-paste-stew", category: "국/찌개", price: "$10.00"},
@@ -95,10 +46,12 @@ const App = () => {
           <Route path="/all" element={<HomePage category={"전체 음식"}/>}/>
           <Route path="/meat" element={<HomePage category={"고기류"}/>}/>
           <Route path="/soup" element={<HomePage category={"국/찌개"}/>}/>
+          <Route path="/seafood" element={<HomePage category={"해산물류"}/>}/>
           <Route path="/noodle" element={<HomePage category={"면류"}/>}/>
           <Route path="/vegetable" element={<HomePage category={"야채류"}/>}/>
           <Route path="/unidentified" element={<HomePage category={"미분류"}/>}/>
           <Route path="/purchase" element={<Purchase />}/>
+          <Route path="/newcompany" element={<NewCompany />}/>
           <Route path="/shoppingcart" element={<ShoppingCart />}/>
           <Route path="/delivery/example" element={<FoodSpecifics />}/>
           <Route path="/customerservice" element={<CustomerService />}/>

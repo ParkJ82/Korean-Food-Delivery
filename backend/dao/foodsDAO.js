@@ -68,7 +68,7 @@ export default class FoodsDAO {
     static async updateFood(foodId, foodName, foodEnglishName, foodCategory, foodPrice) {
         try {
             const updateFood = await foods.updateOne(
-                { _d: ObjectID(foodId)},
+                { _id: ObjectID(foodId) },
                 { $set: { name: foodName, englishName : foodEnglishName, category: foodCategory, price: foodPrice } },
             )
 

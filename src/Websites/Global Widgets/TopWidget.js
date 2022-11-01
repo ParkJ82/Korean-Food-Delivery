@@ -17,8 +17,8 @@ const TopWidget = () => {
                     <Nav.Link href="/customerservice">
                     고객센터
                     </Nav.Link>
-                    <Nav.Link>
-                        점포면 회사 가입하기!
+                    <Nav.Link href="/newcompany">
+                        업체신가요? 지금 업체를 가입하세요!
                     </Nav.Link>
                 </Nav>
                 

@@ -38,7 +38,7 @@ export default class FoodsCtrl {
         }
     }
 
-    static async apiGetFoodCategories(id) {
+    static async apiGetFoodCategories(req, res, next) {
         try {
             let categories = await FoodsDAO.getCategories()
             res.json(categories)

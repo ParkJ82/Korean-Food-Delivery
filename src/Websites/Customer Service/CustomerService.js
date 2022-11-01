@@ -1,5 +1,6 @@
 import React from "react";
 import TopWidget from "../Global Widgets/TopWidget";
+import Button from "react-bootstrap/Button"
 
 export default function CustomerService() {
     return (
@@ -17,6 +18,7 @@ export default function CustomerService() {
 
             <h3>이메일: hanban82@gmail.com </h3>
 
+            <Button href="/">홈페이지로 돌아가기</Button>
         </div>
     )
 }
