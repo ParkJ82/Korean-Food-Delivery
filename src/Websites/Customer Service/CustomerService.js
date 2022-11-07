@@ -1,11 +1,9 @@
 import React from "react";
-import TopWidget from "../Global Widgets/TopWidget";
 import Button from "react-bootstrap/Button"
 
 export default function CustomerService() {
     return (
         <div>
-            {<TopWidget/>}
 
             <h1>고객센터</h1>
 

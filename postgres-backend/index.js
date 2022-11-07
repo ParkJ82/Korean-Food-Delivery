@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import pool from "./foods.js"
+import pool from "./foods.js";
 
 const app = express()
 app.use(cors())
@@ -19,7 +19,7 @@ app.get("/foods/categories", async (req, res) => {
 app.post("/delivery_services", async (req, res) => {
     try {
         const { service_name, service_email, service_phonenumber, 
-            delivery_minimum, order_by, set_menu_minimum} = req.body;
+            delivery_minimum, order_by, set_menu_minimum } = req.data;
         const newDeliveryService = await pool.query(
             "INSERT INTO delivery_services (service_name, service_email, service_phonenumber, delivery_minimum, order_by, set_menu_minimum) VALUES($1, $2, $3, $4, $5, $6) RETURNING *",
             [service_name, service_email, service_phonenumber, delivery_minimum, order_by, set_menu_minimum]
@@ -30,6 +30,23 @@ app.post("/delivery_services", async (req, res) => {
         console.error(err.message);
     }
 });
+
+app.post("/newaccount", async (req, res) => {
+    try {
+
+        console.log(req.body);
+        const { name, id, password, phonenumber, kakaoid } = req.body;
+        const newAccount = await pool.query(
+            "INSERT INTO accounts (login_id, login_password, phone_number, kakao_id, name) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+            [id, password, phonenumber, kakaoid, name]
+        )
+
+        res.json(newAccount.rows[0])
+    } catch (err) {
+        console.error(err.message);
+    }
+})
+
 
 app.get("/delivery_services", async (req, res) => {
     try {
@@ -55,7 +72,7 @@ app.put("/delivery_services/:id", async (req, res) => {
     try {
         const { id } = req.params;
         const { service_name, service_email, service_phonenumber, 
-            delivery_minimum, order_by, set_menu_minimum}
+            delivery_minimum, order_by, set_menu_minimum }
         = req.body;
         const updateFood = await pool.query(
             "UPDATE delivery_services SET service_name = $1, service_email = $2, service_phonenumber = $3, delivery_minimum = $4, order_by = $5, set_menu_minimum = $6 WHERE service_id = $7",
@@ -120,9 +137,6 @@ app.get("/foods/searchbydeliveryservice/:id", async (req, res) => {
 })
 
 
-
-
-
 app.delete("/foods/:id", async (req, res) => {
     try {
         const { id } = req.params;
@@ -156,11 +170,24 @@ app.get("/foods/searchbyid/:id", async (req, res) => {
         const food = await pool.query("SELECT * FROM foods WHERE food_id = $1",
         [id]);
 
-        res.json(food.rows[0])
+        res.json(food.rows[0]);
     } catch (err) {
         console.error(err.message);
     }
 });
+    
+
+app.get("accounts/:id/:password", async (req, res) => {
+    try {
+        const { id, password } = req.params;
+        const account = await pool.query("SELECT * FROM accounts WHERE login_id = $1 AND account_password = $2",
+        [id, password]);
+
+        res.json(account.rows[0]);
+    } catch (err) {
+        console.error(err.message);
+    }
+}) 
 
 
 app.get("/foods/:deliveryservice/:category", async (req, res) => {
@@ -209,20 +236,6 @@ app.get("/foods/:deliveryservice/:category", async (req, res) => {
     }
 })
 
-
-
-
-// app.get("/foods/searchbyunique/:id", async (req, res) => {
-//     try {
-//         const { id } = req.params;
-//         const food = await pool.query("SELECT * FROM foods WHERE category = $1",
-//         [id]);
-
-//         res.json("food");
-//     } catch (err) {
-//         console.error(err.message);
-//     }
-// });
 
 app.listen(port, () => {
     console.log(`App running on port ${port}.`)

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import TopWidget from "../Global Widgets/TopWidget";
 import FoodDataService from "../../services/food";
 
 // 가격, 배달업체, 배달날짜, 이름, 사진
@@ -33,7 +32,6 @@ function FoodSpecifics({match}) {
 
     return (
         <div>
-            {<TopWidget />}
 
             <h5>이름: {food.food_name}</h5>
             <h5>사진 입력</h5>

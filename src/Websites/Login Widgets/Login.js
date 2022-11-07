@@ -1,14 +1,21 @@
 import React, { useState } from "react";
-import TopWidget from "../Global Widgets/TopWidget";
 import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
-import InputGroup from "react-bootstrap/InputGroup"
-import Row from "react-bootstrap/Row"
+import InputGroup from "react-bootstrap/InputGroup";
+import Row from "react-bootstrap/Row";
+import AccountDataService from "../../services/account"
 
 
-const LoginWidget = () => {
+const LoginWidget = (props) => {
     const [validated, setValidated] = useState(false);
+
+    const initialUserState = {
+        id: "",
+        password: ""
+    };
+
+    const [user, setUser] = useState(initialUserState);
 
     const handleSubmit = (event) => {
         const form = event.currentTarget;
@@ -20,9 +27,25 @@ const LoginWidget = () => {
         setValidated(true);
     }
 
+    const handleInputChange = event => {
+        const { name, value } = event.target;
+        setUser({ ...user, [name]: value });
+    };
+
+    function login() {
+        AccountDataService.validateAccount(user)
+            .then(response => {
+                props.login(response.data);
+                props.history.push('/');
+            })
+            .catch(e => {
+                console.log(e);
+            })
+    }
+
     return (
         <div>
-            {<TopWidget/>}
+
 
             <h1>로그인</h1>
 
@@ -36,6 +59,8 @@ const LoginWidget = () => {
                                 required
                                 type="text"
                                 placeholder="(아이디 입력하세요)"
+                                value={user.id}
+                                onChange={handleInputChange}
                             />
                             <Form.Control.Feedback type="invalid">
                                 아이디를 입력하세요
@@ -51,6 +76,8 @@ const LoginWidget = () => {
                                 required
                                 type="password"
                                 placeholder="(비밀번호를 입력하세요)"
+                                value={user.password}
+                                onChange={handleInputChange}
                             />
                             <Form.Control.Feedback type="invalid">
                                 비밀번호를 입력하세요
@@ -58,7 +85,7 @@ const LoginWidget = () => {
                         </InputGroup>
                     </Form.Group>
                 </Row>
-                <Button type="submit">로그인</Button> 계정이 없으신가요? 그렇다면 <strong><a href="/createaccount">회원가입하기</a></strong>
+                <Button type="submit" onClick={login} href="/">로그인</Button> 계정이 없으신가요? 그렇다면 <strong><a href="/createaccount">회원가입하기</a></strong>
             </Form>
             
         </div>

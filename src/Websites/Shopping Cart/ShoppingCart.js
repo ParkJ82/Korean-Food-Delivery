@@ -1,12 +1,10 @@
 import React from "react";
-import TopWidget from "../Global Widgets/TopWidget";
 import Table from "react-bootstrap/Table";
 import Button from "react-bootstrap/Button";
 
 export default function ShoppingCart() {
     return (
         <div>
-            {<TopWidget />}
 
             장바구니:
             

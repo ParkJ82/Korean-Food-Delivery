@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
-import TopWidget from "../Global Widgets";
 
 function FoodInput() {
     const [food, setFood] = useState({
@@ -30,7 +29,6 @@ function FoodInput() {
 
     return (
         <div>
-            {<TopWidget />}
         </div>
     )
 }

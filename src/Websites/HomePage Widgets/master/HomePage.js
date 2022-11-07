@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import TopWidget from "../../Global Widgets/TopWidget";
 import '../../components/LetterFonts.css';
 import Button from "react-bootstrap/Button"
 import Alert from "react-bootstrap/Alert";
@@ -105,7 +104,6 @@ function HomePage() {
 
         <div className="HomePage">
 
-            {<TopWidget />}
             
             <Alert><h3>(주의) 업체마다 배달 미니멈이 있음:</h3></Alert>
 

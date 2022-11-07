@@ -5,7 +5,7 @@ import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
 
 
-const TopWidget = () => {
+function TopWidget(props) {
     return (
         <>
         <Navbar bg="dark" variant="dark" sticky="top">
@@ -20,20 +20,31 @@ const TopWidget = () => {
                     <Nav.Link href="/newcompany">
                         업체신가요? 지금 업체를 가입하세요!
                     </Nav.Link>
+                    {/* <Nav.Link href="/en">
+                        change language to english
+                    </Nav.Link> */}
                 </Nav>
                 
                 <Nav className="ms-auto">
-                    <Nav.Link href="/createaccount">
-                        <Button className="btn btn-success">회원가입</Button>
-                    </Nav.Link>
-                    <Nav.Link href="/login">
-                        <Button className="btn btn-success">로그인</Button>
-                    </Nav.Link>
-                </Nav>
-                
-
-                
-                
+                    {props.user ? (
+                    <>
+                        현재 회원: {props.user.name}
+                        <Nav.Link href="/">
+                            <Button className="btn btn-success">로그아웃</Button>
+                        </Nav.Link>
+                    </>
+                    ) : (
+                    <>
+                        <Nav.Link href="/createaccount">
+                            <Button className="btn btn-success">회원가입</Button>
+                        </Nav.Link>
+                        <Nav.Link href="/login">
+                            <Button className="btn btn-success">로그인</Button>
+                        </Nav.Link>
+                    </>
+                    )}
+                    
+                </Nav>    
             </Container>
         </Navbar>
         </>

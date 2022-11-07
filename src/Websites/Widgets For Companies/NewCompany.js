@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import TopWidget from "../Global Widgets/TopWidget";
 import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
@@ -22,7 +21,6 @@ export default function NewCompany() {
 
     return (
         <div>
-            {<TopWidget />}
 
             <h1>업체 추가시키기</h1>
             <Button href="/">홈페이지로 돌아가기</Button>

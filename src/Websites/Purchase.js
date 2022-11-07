@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import TopWidget from "./Global Widgets/TopWidget";
 import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
@@ -27,7 +26,6 @@ function Purchase () {
 
     return (
         <div>
-                {<TopWidget />}
 
             <Container>
             <h1>구매 계정 넣기</h1>
