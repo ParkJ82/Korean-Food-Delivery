@@ -1,11 +1,16 @@
-import React from "react";
+import React, { useContext, useEffect } from "react";
 import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
+import LoginContext from "../../login-context";
 
 
-function TopWidget(props) {
+function TopWidget() {
+    const currentUser = useContext(LoginContext);
+
+    console.log(currentUser);
+
     return (
         <>
         <Navbar bg="dark" variant="dark" sticky="top">
@@ -26,10 +31,10 @@ function TopWidget(props) {
                 </Nav>
                 
                 <Nav className="ms-auto">
-                    {props.user ? (
+                    {currentUser.user ? (
                     <>
-                        현재 회원: {props.user.name}
                         <Nav.Link href="/">
+                            현재 회원: {currentUser.user.name} &nbsp; 
                             <Button className="btn btn-success">로그아웃</Button>
                         </Nav.Link>
                     </>

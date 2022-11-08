@@ -1,13 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
 import Row from "react-bootstrap/Row";
-import AccountDataService from "../../services/account"
+import AccountDataService from "../../services/account";
+import LoginContext from "../../login-context";
 
 
-const LoginWidget = (props) => {
+const LoginWidget = () => {
+    const inputUser = useContext(LoginContext);
+
     const [validated, setValidated] = useState(false);
 
     const initialUserState = {
@@ -34,13 +37,7 @@ const LoginWidget = (props) => {
 
     function login() {
         AccountDataService.validateAccount(user)
-            .then(response => {
-                props.login(response.data);
-                props.history.push('/');
-            })
-            .catch(e => {
-                console.log(e);
-            })
+        inputUser.login(user);
     }
 
     return (

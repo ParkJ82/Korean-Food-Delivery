@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import FoodDataService from "../../services/food";
+import {useParams} from "react-router-dom";
 
 // 가격, 배달업체, 배달날짜, 이름, 사진
 
-function FoodSpecifics({match}) {
+function FoodSpecifics() {
     const initialFoodState = {
         food_id: null,
         food_name: "",
@@ -12,6 +13,8 @@ function FoodSpecifics({match}) {
         delivered_by: "",
         is_set_menu: false
     }
+
+    const {id} = useParams();
 
     const [food, setFood] = useState(initialFoodState);
 
@@ -27,8 +30,8 @@ function FoodSpecifics({match}) {
     }
 
     useEffect(() => {
-        getFood(match.params.id);
-    }, [match.params.id]);
+        getFood(id);
+    }, [id]);
 
     return (
         <div>

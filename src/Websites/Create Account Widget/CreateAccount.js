@@ -1,14 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
 import Row from "react-bootstrap/Row";
-import AccountDataService from "../../services/account"
+import AccountDataService from "../../services/account";
+import LoginContext from "../../login-context";
 
 
-function CreateAccountWebsite(props) {
-    
+
+function CreateAccountWebsite() {
+    const user = useContext(LoginContext);
 
     const initialNewUserState = {
         name: "",
@@ -21,10 +23,14 @@ function CreateAccountWebsite(props) {
     const [validated, setValidated] = useState(false);
     const [newUser, setNewUser] = useState(initialNewUserState);
 
+
+
     const handleInputChange = event => {
         const { name, value } = event.target;
         setNewUser({ ...newUser, [name]: value });
     };
+
+
 
 
     const handleSubmit = (event) => {
@@ -39,14 +45,8 @@ function CreateAccountWebsite(props) {
 
     function createAccount() {
         AccountDataService.createNewAccount(newUser)
-            .then(response => {
-                console.log(response.data);
-                props.login(response.data);
-                props.history.push('/');
-            })
-            .catch(e => {
-                console.log(e);
-            })
+        user.login(newUser)
+        
     }
 
 
@@ -140,7 +140,7 @@ function CreateAccountWebsite(props) {
                         </InputGroup>
                     </Form.Group>
                 </Row>
-                <Button onClick={createAccount} type="submit" href="/">계정 생성</Button>  이미 계정이 있으신가요? 그렇다면 <strong><a href="/login">로그인하기</a></strong>
+                <Button onClick={createAccount} type="submit">계정 생성</Button>  이미 계정이 있으신가요? 그렇다면 <strong><a href="/login">로그인하기</a></strong>
             </Form>
            
         </div>

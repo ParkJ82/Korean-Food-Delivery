@@ -157,7 +157,7 @@ function HomePage() {
                                         
                                     <Link to={`/foods/${food.food_id}`}>
                                         상세보기
-                                    </Link>
+                                    </Link>&nbsp;&nbsp;&nbsp;
                                 <Button className="btn btn-primary btn-sm">장바구니에 담기</Button>
                             </Card.Body>
                         </Card>
