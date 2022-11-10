@@ -16,13 +16,15 @@ import LoginContext from "./login-context";
 function App() {
 
   const [user, setUser] = useState(
-    sessionStorage.getItem("user") ? 
-      JSON.parse(sessionStorage.getItem("user")) : null);
+    // sessionStorage.getItem("user") ? 
+    //   JSON.parse(sessionStorage.getItem("user")) : 
+      null);
   const [shoppingCart, setShoppingCart] = useState(
-    user ? 
-    // Work on
-      accounts.retriveShoppingCart(user) : localStorage.getItem("guestUser") 
-      ? JSON.parse(localStorage.getItem("guestUser")) : []
+    // user ?   
+    //   accounts.retriveShoppingCart(user) : localStorage.getItem("guestUser") 
+    //   ? JSON.parse(localStorage.getItem("guestUser")) : 
+      sessionStorage.getItem("shoppingCart") ?
+        JSON.parse(sessionStorage.getItem("shoppingCart")) : []
   );
 
   function login(user = null) {
@@ -37,17 +39,18 @@ function App() {
     setUser(null);
   }
 
-  function alterShoppingCart(action, inputFood, inputShoppingCart, user=null) {
+  function alterShoppingCart(inputShoppingCart) {
     // if (action == "remove") {
     //  setShoppingCart(inputShoppingCart.filter(food => food.food_id !== inputFood.food_id));
     // } else {
     //   setShoppingCart([...inputShoppingCart, inputFood]);
     // }
 
-    // Start From Here Tomorrow
-    setShoppingCart(inputShoppingCart)
-    user ? 
-    accounts.adjustShoppingCart(user) : localStorage.setItem("guestUser", JSON.stringify(inputShoppingCart))
+    setShoppingCart(inputShoppingCart);
+    sessionStorage.setItem("shoppingCart", JSON.stringify(inputShoppingCart));
+    console.log(inputShoppingCart);
+    // user ? 
+    // accounts.adjustShoppingCart(user) : localStorage.setItem("guestUser", JSON.stringify(inputShoppingCart))
     
   }
 
@@ -67,7 +70,7 @@ function App() {
         <Routes>
 
 
-          <Route exact path="/" element={<LoginContext.Provider value={{user: user, login:login }}>
+          <Route exact path="/" element={<LoginContext.Provider value={{user: user, shoppingCart: shoppingCart, alterShoppingCart:alterShoppingCart }}>
           <HomePage />
           </LoginContext.Provider>}/>
 
@@ -88,7 +91,7 @@ function App() {
 
           <Route path="/newcompany" element={<NewCompany />}/>
 
-          <Route path="/shoppingcart" element={<LoginContext.Provider value={{user: user, login:login }}>
+          <Route path="/shoppingcart" element={<LoginContext.Provider value={{user: user, shoppingCart: shoppingCart, alterShoppingCart:alterShoppingCart }}>
             <ShoppingCart/>
             </LoginContext.Provider>}/>
 
@@ -96,7 +99,7 @@ function App() {
             <CustomerService/>
             </LoginContext.Provider>}/>
 
-          <Route path="/foods/:id" element={<LoginContext.Provider value={{user: user, login:login }}>
+          <Route path="/foods/:id" element={<LoginContext.Provider value={{user: user, shoppingCart: shoppingCart, alterShoppingCart:alterShoppingCart }}>
             <FoodSpecifics/>
             </LoginContext.Provider>}/>
 

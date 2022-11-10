@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import '../../components/LetterFonts.css';
 import Button from "react-bootstrap/Button"
 import Alert from "react-bootstrap/Alert";
@@ -7,6 +7,7 @@ import DeliveryServiceDataService from "../../../services/deliveryService"
 import { Link } from "react-router-dom";
 import Form from "react-bootstrap/Form";
 import Card from "react-bootstrap/Card";
+import LoginContext from "../../../login-context";
 
 
 function HomePage() {
@@ -15,6 +16,8 @@ function HomePage() {
     const [categories, setCategories] = useState(["전체 음식"]);
     const [searchDeliveryService, setSearchDeliveryService] = useState("전체 업체");
     const [deliveryServices, setDeliveryServices] = useState(["전체 업체"]);
+
+    const user = useContext(LoginContext); 
 
 
     useEffect(() => {
@@ -98,7 +101,9 @@ function HomePage() {
         ultimateFilter(searchCategory, searchDeliveryService);
     }
 
-
+    function addToShoppingCart(inputFood) {
+        user.alterShoppingCart([...user.shoppingCart, inputFood])
+    }
 
     return (
 
@@ -158,7 +163,7 @@ function HomePage() {
                                     <Link to={`/foods/${food.food_id}`}>
                                         상세보기
                                     </Link>&nbsp;&nbsp;&nbsp;
-                                <Button className="btn btn-primary btn-sm">장바구니에 담기</Button>
+                                <Button onClick={() => addToShoppingCart(food)} className="btn btn-primary btn-sm">장바구니에 담기</Button>
                             </Card.Body>
                         </Card>
                         </div>
