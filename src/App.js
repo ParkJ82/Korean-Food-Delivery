@@ -11,6 +11,7 @@ import NewCompany from "./Websites/Widgets For Companies/NewCompany";
 import FoodSpecifics from "./Websites/Food Specific Widgets/FoodSpecifics";
 import TopWidget from "./Websites/Global Widgets/TopWidget";
 import LoginContext from "./login-context";
+import RateDelivery from "./Websites/Rate Delivery/RateDelivery";
 
 
 function App() {
@@ -27,12 +28,28 @@ function App() {
         JSON.parse(sessionStorage.getItem("shoppingCart")) : []
   );
 
+  const [totalCost, setTotalCost] = useState(
+      sessionStorage.getItem("totalCost") ?
+        JSON.parse(sessionStorage.getItem("totalCost")) : 0);
+
+  const [deliveryServices, setDeliveryServices] = useState([]);
+
+
+
   function login(user = null) {
     setUser(user);
     console.log(user);
     sessionStorage.setItem("user", JSON.stringify(user));
   }
 
+  function adjustCost(cost) {
+    setTotalCost(cost);
+    sessionStorage.setItem("totalCost", JSON.stringify(cost));
+  }
+
+  function setInputDeliveryServices(inputDeliveryServices) {
+    setDeliveryServices(inputDeliveryServices)
+  }
 
   function logout() {
     setShoppingCart([]);
@@ -70,7 +87,9 @@ function App() {
         <Routes>
 
 
-          <Route exact path="/" element={<LoginContext.Provider value={{user: user, shoppingCart: shoppingCart, alterShoppingCart:alterShoppingCart }}>
+          <Route exact path="/" element={<LoginContext.Provider value={{user: user, shoppingCart: shoppingCart, 
+            alterShoppingCart:alterShoppingCart, totalCost:totalCost,  setTotalCost: adjustCost, 
+}}>
           <HomePage />
           </LoginContext.Provider>}/>
 
@@ -91,7 +110,8 @@ function App() {
 
           <Route path="/newcompany" element={<NewCompany />}/>
 
-          <Route path="/shoppingcart" element={<LoginContext.Provider value={{user: user, shoppingCart: shoppingCart, alterShoppingCart:alterShoppingCart }}>
+          <Route path="/shoppingcart" element={<LoginContext.Provider value={{user: user, shoppingCart: shoppingCart, 
+            alterShoppingCart:alterShoppingCart, totalCost:totalCost,  setTotalCost: adjustCost}}>
             <ShoppingCart/>
             </LoginContext.Provider>}/>
 
@@ -102,6 +122,8 @@ function App() {
           <Route path="/foods/:id" element={<LoginContext.Provider value={{user: user, shoppingCart: shoppingCart, alterShoppingCart:alterShoppingCart }}>
             <FoodSpecifics/>
             </LoginContext.Provider>}/>
+
+          <Route path="/ratedelivery" element={<RateDelivery />}/>
 
         </Routes>
         

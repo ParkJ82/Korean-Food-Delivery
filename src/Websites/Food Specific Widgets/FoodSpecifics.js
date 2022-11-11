@@ -40,8 +40,7 @@ function FoodSpecifics() {
             <h5>사진 입력</h5>
             <h5>가격: ${food.price}</h5>
             <h5>배달업체: {food.delivered_by}</h5>
-            <h5>배달 날짜: 9월 17일</h5>
-
+            <h9> (해당 업체가 마음에 들거나 마음에 들지 않았나요? 그렇다면 <strong><a href="/ratedelivery">리뷰를 작성해주세요</a></strong>!)</h9>
         
         </div>
         

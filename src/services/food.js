@@ -13,16 +13,18 @@ class FoodDataService {
     }
 
     getAllFoods() {
-        return http.get("/foods");
+        return http.get(`/foods`);
     }
 
-    getFoodByCategory(category) {
-        return http.get(`/foods/searchbycategory${category}`);
-    }
+    // getFoodByCategory(category, page=0) {
+    //     const pageFood = page * 15;
+    //     return http.get(`/foods/${pageFood}/searchbycategory/${category}`);
+    // }
 
-    getFoodByDeliveryService(service) {
-        return http.get(`/foods/searchbydeliveryservice/${service}`);
-    }
+    // getFoodByDeliveryService(service, page=0) {
+    //     const pageFood = page * 15;
+    //     return http.get(`/foods?page=${pageFood}/?searchbydeliveryservice=${service}`);
+    // }
 
     getFoodById(id) {
         return http.get(`/foods/searchbyid/${id}`);

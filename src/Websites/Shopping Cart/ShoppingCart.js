@@ -64,12 +64,16 @@ export default function ShoppingCart() {
                 </thead>
                 <tbody>
                     {dictionaryToArray(dynamicShoppingCart)}
+                    <tr>
+                        <td colSpan={4} text-align="right">총 가격:</td>
+                        <td>{user.totalCost}</td>
+                    </tr>
                 </tbody>
 
             </Table>
 
             <Button>구매하기</Button>
-            <Button>더 돌아보기</Button>
+            <Button href="/">더 돌아보기</Button>
 
         </div>
     )

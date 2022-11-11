@@ -47,10 +47,10 @@ app.post("/newaccount", async (req, res) => {
     }
 })
 
-
 app.get("/delivery_services", async (req, res) => {
     try {
-        const allDeliveryServices = await pool.query("SELECT * FROM delivery_services");
+        const allDeliveryServices = await pool.query(
+            "SELECT service_id, service_name, service_email, service_phonenumber, delivery_minimum, order_by, set_menu_minimum, rated_users, ROUND(total_rating / rated_users, 1) AS ratings FROM delivery_services");
         res.json(allDeliveryServices.rows);
     } catch (err) {
         console.error(err.message);
@@ -86,6 +86,7 @@ app.put("/delivery_services/:id", async (req, res) => {
     }
 })
 
+// UPDATE delivery_services SET total_rating = $1, rated_users = $2 WHERE service_id = $3
 
 
 app.post("/foods", async (req, res) => {
@@ -112,29 +113,29 @@ app.get("/foods", async (req, res) => {
     }
 });
 
-app.get("/foods/searchbycategory/:id", async (req, res) => {
-    try {
-        const { id } = req.params;
-        const food = await pool.query("SELECT * FROM foods WHERE category = $1",
-        [id]);
+// app.get("/foods/searchbycategory/:id/:page", async (req, res) => {
+//     try {
+//         const { id, page } = req.params;
+//         const food = await pool.query("SELECT SKIP $1 FIRST 15 * FROM foods WHERE category = $2",
+//         [page, id]);
 
-        res.json(food.rows[0])
-    } catch (err) {
-        console.error(err.message);
-    }
-});
+//         res.json(food.rows[0])
+//     } catch (err) {
+//         console.error(err.message);
+//     }
+// });
 
-app.get("/foods/searchbydeliveryservice/:id", async (req, res) => {
-    try {
-        const { id } = req.params;
-        const food = await pool.query("SELECT * FROM foods WHERE delivered_by = $1", 
-        [id]);
-        res.json(food.rows)
-    } catch (err) {
-        console.error(err.message);
-    }
+// app.get("/foods?page=:page/?searchbydeliveryservice=:id", async (req, res) => {
+//     try {
+//         const { page, id } = req.params;
+//         const food = await pool.query("SELECT SKIP $1 FIRST 15 * FROM foods WHERE delivered_by = $2", 
+//         [page, id]);
+//         res.json(food.rows)
+//     } catch (err) {
+//         console.error(err.message);
+//     }
     
-})
+// })
 
 
 app.delete("/foods/:id", async (req, res) => {
