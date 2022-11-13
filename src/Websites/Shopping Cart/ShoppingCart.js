@@ -64,6 +64,7 @@ export default function ShoppingCart() {
                 </thead>
                 <tbody>
                     {dictionaryToArray(dynamicShoppingCart)}
+                    
                     <tr>
                         <td colSpan={4} text-align="right">총 가격:</td>
                         <td>{user.totalCost}</td>

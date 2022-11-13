@@ -7,6 +7,8 @@ import Button from "react-bootstrap/Button"
 export default function RateDelivery() {
     const [deliveryServices, setDeliveryServices] = useState(["업체를 고르세요"]);
     const [comment, setComment] = useState("");
+    const [rating, setRating] = useState(5);
+    const [deliveryService, setDeliveryService] = useState("업체를 고르세요");
 
     useEffect(() => {
         retrieveDeliveryServices();
@@ -16,13 +18,13 @@ export default function RateDelivery() {
         DeliveryServiceDataService.getAllDeliveryServices()
             .then(response => {
                 const inputDeliveryServices = [...(new Set(response.data.map(({service_name}) => service_name)))]
-                setDeliveryServices(deliveryServices.concat(inputDeliveryServices))
+                setDeliveryServices([deliveryServices].concat(inputDeliveryServices))
             })
     }
 
     function onChangeSearchDeliveryService(e) {
         const searchDeliveryService = e.target.value;
-        setDeliveryServices(searchDeliveryService);
+        setDeliveryService(searchDeliveryService);
     }
 
     const handleInputChange = event => {
@@ -30,6 +32,22 @@ export default function RateDelivery() {
         console.log(newComment);
         setComment(newComment);
     };
+
+    function AdjustRating(nextValue) {
+        setRating(nextValue);
+    }
+
+    function submitReview() {
+        console.log(deliveryService);
+        if (deliveryService == "업체를 고르세요") {
+            return new Error();
+        }
+        if (comment == "") {
+
+        }
+        console.log("test");
+        DeliveryServiceDataService.setDeliveryServiceRating(deliveryService, rating);
+    }
 
     return (
         <div>
@@ -58,7 +76,8 @@ export default function RateDelivery() {
 
                 <StarRatingComponent 
                     name="rating"
-                    value={5}
+                    value={rating}
+                    onStarClick={AdjustRating}
                 />
 
                 <br></br>
@@ -73,7 +92,7 @@ export default function RateDelivery() {
                     onChange={handleInputChange}
                     rows={5}
                 />
-                <Button>리뷰 제출하기</Button>
+                <Button onClick={submitReview} href="/">리뷰 제출하기</Button>
         </div>
     )
 }

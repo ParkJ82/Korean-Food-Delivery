@@ -18,6 +18,11 @@ class deliveryServiceDataService {
         return http.put(`/delivery_services/${id}`, data);
     }
 
+    setDeliveryServiceRating(name, rating) {
+        console.log([name, rating])
+        return http.put(`/delivery_services/${name}/rating/${rating}`);
+    }
+
 
 }
 

@@ -50,7 +50,7 @@ app.post("/newaccount", async (req, res) => {
 app.get("/delivery_services", async (req, res) => {
     try {
         const allDeliveryServices = await pool.query(
-            "SELECT service_id, service_name, service_email, service_phonenumber, delivery_minimum, order_by, set_menu_minimum, rated_users, ROUND(total_rating / rated_users, 1) AS ratings FROM delivery_services");
+            "SELECT service_id, service_name, service_email, service_phonenumber, delivery_minimum, order_by, set_menu_minimum, rated_users, ROUND((total_rating / rated_users)::numeric, 1) AS ratings FROM delivery_services");
         res.json(allDeliveryServices.rows);
     } catch (err) {
         console.error(err.message);
@@ -189,6 +189,12 @@ app.get("accounts/:id/:password", async (req, res) => {
         console.error(err.message);
     }
 }) 
+
+app.put("/delivery_services/:name/rating/:rating", async (req, res) => {
+    const { name, rating } = req.params;
+    const updateRating = await pool.query("UPDATE delivery_services SET rated_users = rated_users + 1, total_rating = total_rating + $1 WHERE service_name = $2",
+    [rating, name])
+})
 
 
 app.get("/foods/:deliveryservice/:category", async (req, res) => {

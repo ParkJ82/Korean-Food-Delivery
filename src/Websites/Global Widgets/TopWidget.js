@@ -22,9 +22,9 @@ function TopWidget() {
                     <Nav.Link href="/customerservice">
                     고객센터
                     </Nav.Link>
-                    {/* <Nav.Link href="/newcompany">
+                    <Nav.Link href="/newcompany">
                         업체신가요? 지금 업체를 가입하세요!
-                    </Nav.Link> */}
+                    </Nav.Link>
                     {/* <Nav.Link href="/en">
                         change language to english
                     </Nav.Link> */}

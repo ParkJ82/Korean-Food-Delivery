@@ -9,6 +9,7 @@ import Form from "react-bootstrap/Form";
 import Card from "react-bootstrap/Card";
 import LoginContext from "../../../login-context";
 import Pagination from "react-bootstrap/Pagination";
+import Collapse from "react-bootstrap/Collapse";
 
 
 function HomePage() {
@@ -22,6 +23,7 @@ function HomePage() {
     const user = useContext(LoginContext); 
     const [arrayLength, setArrayLength] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
+    const [open, setOpen] = useState(false);
 
     const [dynamicShoppingCart, setDynamicShoppingCart] = useState({});
 
@@ -112,7 +114,6 @@ function HomePage() {
                 const ratingWithService = [...(new Set(response.data.map(({service_name, ratings})=>[service_name, ratings])))];
                 setDeliveryServices([["전체 업체"]].concat([...(new Set(response.data.map(({service_name, ratings, rated_users})=>[service_name, ratings, rated_users])))]));
                 setRatingStars(ratingWithService);
-                user.setDeliveryServices([...(new Set(response.data.map(({service_name})=>service_name)))])
                 console.log([...(new Set(response.data.map(({service_name})=>service_name)))])
             })
             .catch(e => {
@@ -203,15 +204,34 @@ function HomePage() {
         <div className="HomePage">
 
             
-            <Alert><h3>(주의) 업체마다 배달 미니멈이 있음:</h3></Alert>
+            <Alert><h3>(주의) 업체마다 배달 규정이 다름:</h3>
+
+            <Button
+                onClick={() => setOpen(!open)}
+                aria-controls="delivery-text"
+                aria-expanded={open}
+            >
+            배달 규정 보기</Button>
+                
+            
+
+            <Collapse in={open}>
+                    <h6 id="delivery-text">
+                        오병이어 배달 최소비: $65
+                    </h6>
+                </Collapse>
+            
+            </Alert>
 
             
 
             
 
-            <p>주의: 몇몇 음식은 주마다 바뀜</p>
 
             배달 업체가 마음에 들거나 마음에 들지 않았나요? 그렇다면 <strong><a href="/ratedelivery">리뷰를 작성해주세요</a></strong>!
+            <br></br>
+
+            배달비가 너무 많이 나오세요? 그렇다면 멤버십에 가입하고 배달비를 모두 면제 받으세요!
             
             
             <div className="p-2">
