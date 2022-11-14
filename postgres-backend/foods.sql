@@ -17,6 +17,14 @@ CREATE TABLE accounts(
     kakao_id VARCHAR(255)
 );
 
+CREATE TABLE accounts(
+    account_id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    login_id VARCHAR(255) NOT NULL,
+    login_password VARCHAR(255) NOT NULL,
+    phone_number INTEGER,
+    kakao_id VARCHAR(255)
+);
+
 CREATE TABLE addresses(
     address_id SERIAL PRIMARY KEY,
     address_user VARCHAR(255),

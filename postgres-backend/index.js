@@ -1,11 +1,86 @@
 import express from "express";
 import cors from "cors";
 import pool from "./foods.js";
+import bcrypt from "bcrypt";
+import jwtGenerator from "./utils/jwtGenerator.js";
+import validInfo from "./middleware/validInfo.js";
+import authorization from "./middleware/authorization.js";
 
 const app = express()
 app.use(cors())
 app.use(express.json())
 const port = 3001
+
+app.post("/", authorization, async (req, res) => {
+    try {
+        const user = await pool.query(
+            "SELECT login_id FROM accounts WHERE account_id = $1",
+            [req.user]
+        )
+
+        res.json(user.rows[0]);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server error");
+    }
+})
+
+app.post("/newaccount", async (req, res) => {
+    try {
+        const { name, login_id, login_password, phone_number, kakao_id } = req.body;
+        const user = await pool.query("SELECT * FROM accounts WHERE name = $1",
+        [name]);
+
+        if (user.rows.length !== 0) {
+            return res.status(401).send("User already exist");
+        }
+
+        const saltRound = 10;
+        const salt = await bcrypt.genSalt(saltRound)
+        const bycrptPassword = await bcrypt.hash(login_password, salt);
+
+        const newUser = await pool.query(
+            "INSERT INTO accounts (name, login_id, login_password, phone_number, kakao_id) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+            [name, login_id, bycrptPassword, phone_number, kakao_id]
+        )
+
+
+        const token = jwtGenerator(newUser.rows[0].account_id);
+        res.json({ token })
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server Error");
+    }
+});
+
+app.post("/login", async (req, res) => {
+    try {
+        const { login_id, login_password } = req.body;
+        const user = await pool.query("SELECT * FROM accounts WHERE login_id = $1", 
+        [login_id]);
+
+        if (user.rows.length === 0) {
+            return res.status(401).json("Incorrect credentials");
+        }
+
+        const validPassword = await bcrypt.compare(
+            login_password, user.rows[0].login_password
+        );
+
+        if (!validPassword) {
+            return res.status(401).json("Incorrect credentials")
+        }
+
+        const jwtToken = jwtGenerator(user.rows[0].account_id);
+        res.json({ jwtToken });
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server Error");  
+    }
+});
+
 
 app.get("/foods/categories", async (req, res) => {
     try {
@@ -31,21 +106,21 @@ app.post("/delivery_services", async (req, res) => {
     }
 });
 
-app.post("/newaccount", async (req, res) => {
-    try {
+// app.post("/newaccount", async (req, res) => {
+//     try {
 
-        console.log(req.body);
-        const { name, id, password, phonenumber, kakaoid } = req.body;
-        const newAccount = await pool.query(
-            "INSERT INTO accounts (login_id, login_password, phone_number, kakao_id, name) VALUES ($1, $2, $3, $4, $5) RETURNING *",
-            [id, password, phonenumber, kakaoid, name]
-        )
+//         console.log(req.body);
+//         const { name, id, password, phonenumber, kakaoid } = req.body;
+//         const newAccount = await pool.query(
+//             "INSERT INTO accounts (login_id, login_password, phone_number, kakao_id, name) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+//             [id, password, phonenumber, kakaoid, name]
+//         )
 
-        res.json(newAccount.rows[0])
-    } catch (err) {
-        console.error(err.message);
-    }
-})
+//         res.json(newAccount.rows[0])
+//     } catch (err) {
+//         console.error(err.message);
+//     }
+// })
 
 app.get("/delivery_services", async (req, res) => {
     try {
@@ -178,17 +253,17 @@ app.get("/foods/searchbyid/:id", async (req, res) => {
 });
     
 
-app.get("accounts/:id/:password", async (req, res) => {
-    try {
-        const { id, password } = req.params;
-        const account = await pool.query("SELECT * FROM accounts WHERE login_id = $1 AND account_password = $2",
-        [id, password]);
+// app.get("accounts/:id/:password", async (req, res) => {
+//     try {
+//         const { id, password } = req.params;
+//         const account = await pool.query("SELECT * FROM accounts WHERE login_id = $1 AND account_password = $2",
+//         [id, password]);
 
-        res.json(account.rows[0]);
-    } catch (err) {
-        console.error(err.message);
-    }
-}) 
+//         res.json(account.rows[0]);
+//     } catch (err) {
+//         console.error(err.message);
+//     }
+// }) 
 
 app.put("/delivery_services/:name/rating/:rating", async (req, res) => {
     const { name, rating } = req.params;
@@ -242,6 +317,7 @@ app.get("/foods/:deliveryservice/:category", async (req, res) => {
         }
     }
 })
+
 
 
 app.listen(port, () => {
