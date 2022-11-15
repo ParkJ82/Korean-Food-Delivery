@@ -1,15 +1,15 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
 import Row from "react-bootstrap/Row";
 import AccountDataService from "../../services/account";
-import LoginContext from "../../login-context";
+import { toast } from "react-toastify";
 
 
 const LoginWidget = () => {
-    const inputUser = useContext(LoginContext);
+    // const inputUser = useContext(LoginContext);
 
     const [validated, setValidated] = useState(false);
 
@@ -28,6 +28,20 @@ const LoginWidget = () => {
         }
 
         setValidated(true);
+
+        try {
+            AccountDataService.loginToAccount(user)
+                .then(response => {
+                    if (response.token) {
+                        localStorage.setItem("token", response.token);
+                        toast.success("Logged in Successfully");
+                    } else {
+                        toast.error(response);
+                    }
+                })
+        } catch (err) {
+            console.error(err.message);
+        }
     }
 
     const handleInputChange = event => {
@@ -35,10 +49,10 @@ const LoginWidget = () => {
         setUser({ ...user, [name]: value });
     };
 
-    function login() {
-        AccountDataService.validateAccount(user)
-        inputUser.login(user);
-    }
+    // function login() {
+    //     AccountDataService.loginToAccount(user)
+    //     inputUser.login(user);
+    // }
 
     return (
         <div>
@@ -82,7 +96,7 @@ const LoginWidget = () => {
                         </InputGroup>
                     </Form.Group>
                 </Row>
-                <Button type="submit" onClick={login} href="/">로그인</Button> 계정이 없으신가요? 그렇다면 <strong><a href="/createaccount">회원가입하기</a></strong>
+                <Button type="submit">로그인</Button> 계정이 없으신가요? 그렇다면 <strong><a href="/createaccount">회원가입하기</a></strong>
             </Form>
             
         </div>

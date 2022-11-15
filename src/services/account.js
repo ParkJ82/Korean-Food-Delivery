@@ -1,19 +1,16 @@
 import http from "../http-common";
 
 class AccountDataService {
-    getAccountById(id) {
-        return http.get(`/accounts/${id}`);
+    loginToAccount(data) {
+        return http.post("/login", data);
     }
 
-    createNewAccount(data) {
-        
+    createNewAccount(data) {   
         return http.post("/newaccount", data);
     }
 
-    validateAccount(data) {
-        console.log(data.id);
-        console.log(data.password);
-        return http.get(`/accounts/${data.id}/${data.password}`);
+    getName(data) {
+        return http.post("/getName", data);
     }
 }
 

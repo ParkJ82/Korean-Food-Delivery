@@ -1,15 +1,50 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
 import LoginContext from "../../login-context";
+import account from "../../services/account";
+import { toast } from "react-toastify";
 
 
 function TopWidget() {
-    const currentUser = useContext(LoginContext);
+    // const inputUser = useContext(LoginContext);
+    const [user, setUser] = useState(null);
 
-    console.log(currentUser);
+    function getProfile() {
+        try {
+            account.getName({jwt_token: localStorage.token})
+                .then(response => {
+                    if (response.name !== "") {
+                        setUser(response.name)
+                    }
+                })
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    function logout(e) {
+        e.preventDefault();
+        try {
+            localStorage.removeItem("token");
+            localStorage.removeItem("totalPrice");
+            localStorage.removeIten("shoppingCart")
+            setUser(null);
+            // inputUser.login();
+            toast.success("Logout successfully")
+        } catch (err) {
+            console.error(err.message);
+        }
+    }
+
+    useEffect(() => {
+        getProfile()
+    }, [])
+
+
+    console.log(user);
 
     return (
         <>
@@ -31,11 +66,11 @@ function TopWidget() {
                 </Nav>
                 
                 <Nav className="ms-auto">
-                    {currentUser.user ? (
+                    {user ? (
                     <>
                         <Nav.Link href="/">
-                            현재 회원: {currentUser.user.name} &nbsp; 
-                            <Button className="btn btn-success">로그아웃</Button>
+                            현재 회원: {user} &nbsp; 
+                            <Button onclick={(e) => logout(e)} className="btn btn-success">로그아웃</Button>
                         </Nav.Link>
                     </>
                     ) : (

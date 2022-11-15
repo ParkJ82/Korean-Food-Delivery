@@ -6,22 +6,28 @@ import { useState } from "react";
 
 export default function ShoppingCart() {
     const [dynamicShoppingCart, setDynamicShoppingCart] = useState({});
+    const [shoppingCart, setShoppingCart] = useState(
+        localStorage.getItem("shoppingCart") ? 
+        JSON.parse(localStorage.getItem("shoppingCart")) : [])
+    const [totalPrice, setTotalPrice] = useState(localStorage.getItem("totalPrice") ?
+        JSON.parse(localStorage.getItem("totalPrice")) : 0
+    );
     const user = useContext(LoginContext);
 
     useEffect(() => {
         const inputShoppingCart = {};
-        for (let index = 0; index < user.shoppingCart.length; index++) {
-            if (user.shoppingCart[index].food_id in inputShoppingCart) {
-                inputShoppingCart[user.shoppingCart[index].food_id].Amount++;
+        for (let index = 0; index < shoppingCart.length; index++) {
+            if (shoppingCart[index].food_id in inputShoppingCart) {
+                inputShoppingCart[shoppingCart[index].food_id].Amount++;
             }
             else {
-                inputShoppingCart[user.shoppingCart[index].food_id] = 
-                {Food: user.shoppingCart[index], Amount: 1}
+                inputShoppingCart[shoppingCart[index].food_id] = 
+                {Food: shoppingCart[index], Amount: 1}
             }
         }
         setDynamicShoppingCart(inputShoppingCart);
         console.log(inputShoppingCart)
-    }, [user.shoppingCart])
+    }, [shoppingCart])
 
 
 
@@ -67,7 +73,7 @@ export default function ShoppingCart() {
                     
                     <tr>
                         <td colSpan={4} text-align="right">총 가격:</td>
-                        <td>{user.totalCost}</td>
+                        <td>{totalPrice}</td>
                     </tr>
                 </tbody>
 

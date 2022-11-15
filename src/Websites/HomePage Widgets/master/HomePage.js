@@ -20,10 +20,12 @@ function HomePage() {
     const [deliveryServices, setDeliveryServices] = useState(["전체 업체"]);
     const [ratingStars, setRatingStars] = useState([]);
 
-    const user = useContext(LoginContext); 
     const [arrayLength, setArrayLength] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
     const [open, setOpen] = useState(false);
+    const [totalPrice, setTotalPrice] = useState(localStorage.getItem("totalPrice") ?
+        JSON.parse(localStorage.getItem("totalPrice")) : 0
+    );
 
     const [dynamicShoppingCart, setDynamicShoppingCart] = useState({});
 
@@ -68,19 +70,20 @@ function HomePage() {
         retrieveDeliveryServices();
     }, [])
 
-    useEffect(() => {
-        const inputShoppingCart = {};
-        for (let index = 0; index < user.shoppingCart.length; index++) {
-            if (user.shoppingCart[index].food_id in inputShoppingCart) {
-                inputShoppingCart[user.shoppingCart[index].food_id].Amount++;
-            }
-            else {
-                inputShoppingCart[user.shoppingCart[index].food_id] = 
-                {Food: user.shoppingCart[index], Amount: 1}
-            }
-        }
-        setDynamicShoppingCart(inputShoppingCart);
-    }, [user.shoppingCart]);
+    // useEffect(() => {
+    //     const inputShoppingCart = {};
+    //     for (let index = 0; index < user.shoppingCart.length; index++) {
+    //         if (user.shoppingCart[index].food_id in inputShoppingCart) {
+    //             inputShoppingCart[user.shoppingCart[index].food_id].Amount++;
+    //         }
+    //         else {
+    //             inputShoppingCart[user.shoppingCart[index].food_id] = 
+    //             {Food: user.shoppingCart[index], Amount: 1}
+    //         }
+    //     }
+    //     setDynamicShoppingCart(inputShoppingCart);
+    // }, [user.shoppingCart]);
+
 
     function retrieveFoods(inputPage) {
         FoodDataService.getAllFoods(inputPage)
@@ -164,8 +167,29 @@ function HomePage() {
 
     function addToShoppingCart(inputFood) {
 
-        user.alterShoppingCart([...user.shoppingCart, inputFood])
-        user.setTotalCost(user.totalCost + inputFood.price)
+        if (localStorage.getItem("shoppingCart")) {
+            localStorage.setItem("shoppingCart", JSON.stringify([...JSON.parse(localStorage.getItem("shoppingCart")), inputFood]))
+        } else {
+            localStorage.setItem("shoppingCart", JSON.stringify([inputFood]))
+        }
+        setTotalPrice(JSON.parse(localStorage.getItem("totalPrice")) + inputFood.price)
+        localStorage.setItem("totalPrice", JSON.parse(localStorage.getItem("totalPrice")) + inputFood.price);
+        adjustDynamicShoppingCart();
+    }
+
+    function adjustDynamicShoppingCart() {
+        const inputShoppingCart = {};
+        const shoppingCartList = JSON.parse(localStorage.getItem("shoppingCart"));
+        for (let index = 0; index < shoppingCartList.length; index++) {
+            if (shoppingCartList[index].food_id in inputShoppingCart) {
+                inputShoppingCart[shoppingCartList[index].food_id].Amount++;
+            }
+            else {
+                inputShoppingCart[shoppingCartList[index].food_id] = 
+                {Food: shoppingCartList[index], Amount: 1}
+            }
+        }
+        setDynamicShoppingCart(inputShoppingCart);
     }
 
     function eachDeliveryTotal(inputDictionary) {
@@ -310,7 +334,7 @@ function HomePage() {
             <Button href="/shoppingcart" className="btn btn-warning">장바구니 보기</Button>
             
 
-            총 구매: ${user.totalCost} {eachDeliveryTotal(dynamicShoppingCart)}
+            총 구매: ${totalPrice} {eachDeliveryTotal(dynamicShoppingCart)}
             
             
         </div>

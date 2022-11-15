@@ -5,12 +5,11 @@ import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
 import Row from "react-bootstrap/Row";
 import AccountDataService from "../../services/account";
-import LoginContext from "../../login-context";
+import { toast } from "react-toastify";
 
 
 
 function CreateAccountWebsite() {
-    const user = useContext(LoginContext);
 
     const initialNewUserState = {
         name: "",
@@ -20,18 +19,15 @@ function CreateAccountWebsite() {
         kakaoid: ""
     };
 
+
     const [validated, setValidated] = useState(false);
     const [newUser, setNewUser] = useState(initialNewUserState);
-
 
 
     const handleInputChange = event => {
         const { name, value } = event.target;
         setNewUser({ ...newUser, [name]: value });
     };
-
-
-
 
     const handleSubmit = (event) => {
         const form = event.currentTarget;
@@ -40,13 +36,19 @@ function CreateAccountWebsite() {
             event.stopPropagation();
         }
 
-        setValidated(true);
-    }
-
-    function createAccount() {
-        AccountDataService.createNewAccount(newUser)
-        user.login(newUser)
-        
+        try {
+            AccountDataService.createNewAccount(newUser)
+                .then(response => {
+                    if (response.token) {
+                        localStorage.setItem("token", response.token);
+                        toast.success("Registered Successfully");
+                    } else {
+                        toast.error(response);
+                    }
+                })
+        } catch (err) {
+            console.error(err.message);
+        }
     }
 
 
@@ -140,7 +142,7 @@ function CreateAccountWebsite() {
                         </InputGroup>
                     </Form.Group>
                 </Row>
-                <Button onClick={createAccount} type="submit">계정 생성</Button>  이미 계정이 있으신가요? 그렇다면 <strong><a href="/login">로그인하기</a></strong>
+                <Button type="submit">계정 생성</Button>  이미 계정이 있으신가요? 그렇다면 <strong><a href="/login">로그인하기</a></strong>
             </Form>
            
         </div>

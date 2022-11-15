@@ -11,10 +11,10 @@ app.use(cors())
 app.use(express.json())
 const port = 3001
 
-app.post("/", authorization, async (req, res) => {
+app.post("/getName", authorization, async (req, res) => {
     try {
         const user = await pool.query(
-            "SELECT login_id FROM accounts WHERE account_id = $1",
+            "SELECT name FROM accounts WHERE account_id = $1",
             [req.user]
         )
 
@@ -72,8 +72,8 @@ app.post("/login", async (req, res) => {
             return res.status(401).json("Incorrect credentials")
         }
 
-        const jwtToken = jwtGenerator(user.rows[0].account_id);
-        res.json({ jwtToken });
+        const token = jwtGenerator(user.rows[0].account_id);
+        res.json({ token });
 
     } catch (err) {
         console.error(err.message);

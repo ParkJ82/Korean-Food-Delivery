@@ -3,13 +3,11 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 export default function authorization (req, res, next) {
-    const token = req.header("jwt_token");
+    const token = req.body.jwt_token;
+    if (!token) {
+        return res.status(403).json({ msg: "authorization denied"});
+    }
     try {
-
-        if (!token) {
-            return res.status(403).json({ msg: "authorization denied"});
-        }
-
         const payload = jwt.verify(token, process.env.jwtSecret);
         req.user = payload.user;
         next();
