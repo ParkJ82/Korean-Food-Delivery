@@ -25,6 +25,19 @@ CREATE TABLE accounts(
     kakao_id VARCHAR(255)
 );
 
+CREATE TABLE ratings(
+    login_id VARCHAR(255),
+    service_id INTEGER,
+    rating INTEGER
+);
+
+CREATE TABLE shopping_cart(
+    login_id VARCHAR(255),
+    amount INTEGER,
+    food_id INTEGER,
+    total_cost FLOAT
+)
+
 CREATE TABLE addresses(
     address_id SERIAL PRIMARY KEY,
     address_user VARCHAR(255),

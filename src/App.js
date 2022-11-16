@@ -4,6 +4,7 @@ import CreateAccountWebsite from './Websites/Create Account Widget/CreateAccount
 import HomePage from './Websites/HomePage Widgets/master/HomePage';
 import Login from "./Websites/Login Widgets/Login";
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'react-toastify/dist/ReactToastify.css';
 import Purchase from "./Websites/Purchase";
 import ShoppingCart from "./Websites/Shopping Cart/ShoppingCart";
 import CustomerService from "./Websites/Customer Service/CustomerService";
@@ -68,7 +69,7 @@ function App() {
   // }
 
   function PrivateRoutes() {
-    let auth = {'token': localStorage.token}
+    let auth = {token: localStorage.getItem("token")}
     return (
       auth.token ? <Navigate to="/"/> : <Outlet/>
     )

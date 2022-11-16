@@ -10,8 +10,21 @@ class AccountDataService {
     }
 
     getName(data) {
-        return http.post("/getName", data);
+        return http.post("/getname", data);
     }
+
+    getShoppingCart(user) {
+        return http.post("/getshoppingcart", user);
+    }
+
+    // createShoppingCart(data) {
+    //     return http.post("/newshoppingcart", data);
+    // }
+
+    updateShoppingCart(data) {
+        return http.post("/updateshoppingcart", data);
+    }
+
 }
 
 export default new AccountDataService();

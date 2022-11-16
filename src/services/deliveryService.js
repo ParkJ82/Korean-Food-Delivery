@@ -18,11 +18,19 @@ class deliveryServiceDataService {
         return http.put(`/delivery_services/${id}`, data);
     }
 
+    // Rework
     setDeliveryServiceRating(name, rating) {
         console.log([name, rating])
         return http.put(`/delivery_services/${name}/rating/${rating}`);
     }
 
+    updateDeliveryServiceRating(data) {
+        return http.post(`/updaterating`, data);
+    }
+
+    getDeliveryServiceRating(user) {
+        
+    }
 
 }
 

@@ -14,10 +14,10 @@ function TopWidget() {
 
     function getProfile() {
         try {
-            account.getName({jwt_token: localStorage.token})
+            account.getName({jwt_token: localStorage.getItem("token")})
                 .then(response => {
-                    if (response.name !== "") {
-                        setUser(response.name)
+                    if (response.data.name !== "") {
+                        setUser(response.data.name)
                     }
                 })
         } catch (err) {
@@ -30,7 +30,7 @@ function TopWidget() {
         try {
             localStorage.removeItem("token");
             localStorage.removeItem("totalPrice");
-            localStorage.removeIten("shoppingCart")
+            localStorage.removeItem("shoppingCart");
             setUser(null);
             // inputUser.login();
             toast.success("Logout successfully")
@@ -70,7 +70,7 @@ function TopWidget() {
                     <>
                         <Nav.Link href="/">
                             현재 회원: {user} &nbsp; 
-                            <Button onclick={(e) => logout(e)} className="btn btn-success">로그아웃</Button>
+                            <Button onClick={(e) => logout(e)} className="btn btn-success">로그아웃</Button>
                         </Nav.Link>
                     </>
                     ) : (

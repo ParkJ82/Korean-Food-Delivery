@@ -11,7 +11,7 @@ app.use(cors())
 app.use(express.json())
 const port = 3001
 
-app.post("/getName", authorization, async (req, res) => {
+app.post("/getname", authorization, async (req, res) => {
     try {
         const user = await pool.query(
             "SELECT name FROM accounts WHERE account_id = $1",
@@ -22,6 +22,79 @@ app.post("/getName", authorization, async (req, res) => {
     } catch (err) {
         console.error(err.message);
         res.status(500).send("Server error");
+    }
+})
+
+app.post("/getshoppingcart", async (req, res) => {
+    try {
+        const { user } = req.body;
+        const shoppingCart = await pool.query(
+            `
+            SELECT foods.food_name AS food_name, shopping_cart.amount AS amount, 
+                foods.delivered_by AS delivered_by FROM shopping_cart 
+                    JOIN foods ON shopping_cart.food_id = foods.food_id 
+                        WHERE shopping_cart.login_id = $1
+            `,
+            [user]
+        )
+        res.json(shoppingCart.rows)
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server error");
+    }
+})
+
+app.post("/updaterating", async (req, res) => {
+    try {
+        const { user, delivery_service, rating } = req.body;
+        await pool.query(
+            `
+            BEGIN
+                IF EXISTS (SELECT FROM ratings WHERE login_id = $1, service_id = $2) THEN
+                    UPDATE ratings SET ratings = $3 WHERE login_id = $1, service_id = $2;
+                ELSE
+                    INSERT INTO ratings (login_id, service_id) VALUES ($1, $2);
+                END IF;
+            END
+            `
+        )
+    } catch (err) {
+        
+    }
+})
+
+app.post("/updateshoppingcart", async (req, res) => {
+    try {
+        const { user, food_id, amount } = req.body;
+        await pool.query(
+            `
+            BEGIN
+                IF EXISTS (SELECT FROM shopping_cart WHERE login_id = $1, food_id = $2) THEN
+                    UPDATE shopping_cart SET amount = amount + $3 WHERE login_id = $1, food_id = $2;
+                ELSE
+                    INSERT INTO shopping_cart (login_id, food_id, amount) VALUES ($1, $2, $3);
+                END IF;
+            END
+            `,
+            [user, food_id, amount]
+        )
+
+        const shoppingCart = await pool.query(
+            `
+            SELECT foods.food_name AS food_name, shopping_cart.amount AS amount, 
+                foods.delivered_by AS delivered_by FROM shopping_cart 
+                        JOIN foods 
+                            ON shopping_cart.food_id = foods.food_id 
+                                WHERE shopping_cart.login_id = $1
+            `,
+            [user]
+        )
+
+        res.json(shoppingCart.rows)
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server Error");   
     }
 })
 
@@ -54,18 +127,19 @@ app.post("/newaccount", async (req, res) => {
     }
 });
 
+
 app.post("/login", async (req, res) => {
     try {
-        const { login_id, login_password } = req.body;
+        const { id, password } = req.body;
         const user = await pool.query("SELECT * FROM accounts WHERE login_id = $1", 
-        [login_id]);
+        [id]);
 
         if (user.rows.length === 0) {
             return res.status(401).json("Incorrect credentials");
         }
 
         const validPassword = await bcrypt.compare(
-            login_password, user.rows[0].login_password
+            password, user.rows[0].login_password
         );
 
         if (!validPassword) {

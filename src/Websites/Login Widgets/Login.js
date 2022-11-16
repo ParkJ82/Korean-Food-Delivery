@@ -5,7 +5,7 @@ import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
 import Row from "react-bootstrap/Row";
 import AccountDataService from "../../services/account";
-import { toast } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 
 
 const LoginWidget = () => {
@@ -29,11 +29,17 @@ const LoginWidget = () => {
 
         setValidated(true);
 
+        
+    }
+
+    function login(inputUser) {
         try {
-            AccountDataService.loginToAccount(user)
+            AccountDataService.loginToAccount(inputUser)
                 .then(response => {
-                    if (response.token) {
-                        localStorage.setItem("token", response.token);
+                    console.log("test");
+                    console.log(response);
+                    if (response.data.token) {
+                        localStorage.setItem("token", response.data.token);
                         toast.success("Logged in Successfully");
                     } else {
                         toast.error(response);
@@ -69,6 +75,7 @@ const LoginWidget = () => {
                             <Form.Control
                                 required
                                 type="text"
+                                name="id"
                                 placeholder="(아이디 입력하세요)"
                                 value={user.id}
                                 onChange={handleInputChange}
@@ -85,6 +92,7 @@ const LoginWidget = () => {
                         <InputGroup hasValidation>
                             <Form.Control
                                 required
+                                name="password"
                                 type="password"
                                 placeholder="(비밀번호를 입력하세요)"
                                 value={user.password}
@@ -96,7 +104,7 @@ const LoginWidget = () => {
                         </InputGroup>
                     </Form.Group>
                 </Row>
-                <Button type="submit">로그인</Button> 계정이 없으신가요? 그렇다면 <strong><a href="/createaccount">회원가입하기</a></strong>
+                <Button onClick={() => login(user)} type="submit">로그인</Button> 계정이 없으신가요? 그렇다면 <strong><a href="/createaccount">회원가입하기</a></strong>
             </Form>
             
         </div>
