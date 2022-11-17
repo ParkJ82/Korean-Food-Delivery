@@ -3,6 +3,7 @@ import Table from "react-bootstrap/Table";
 import Button from "react-bootstrap/Button";
 import LoginContext from "../../login-context";
 import { useState } from "react";
+import account from "../../services/account";
 
 export default function ShoppingCart() {
     const [dynamicShoppingCart, setDynamicShoppingCart] = useState({});
@@ -12,7 +13,27 @@ export default function ShoppingCart() {
     const [totalPrice, setTotalPrice] = useState(localStorage.getItem("totalPrice") ?
         JSON.parse(localStorage.getItem("totalPrice")) : 0
     );
-    const user = useContext(LoginContext);
+
+    function getUserId() {
+        try {
+            account.getId({jwt_token: localStorage.getItem("token")})
+                .then(response => {
+                    if (response.data.login_id !== "") {
+                        return response.data.login_id;
+                    }
+                })
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    function getShoppingCart() {
+        const user = getUserId();
+        account.getShoppingCart({user: user})
+            .then(response => {
+                
+            })
+    }
 
     useEffect(() => {
         const inputShoppingCart = {};

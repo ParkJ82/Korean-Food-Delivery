@@ -9,6 +9,10 @@ class AccountDataService {
         return http.post("/newaccount", data);
     }
 
+    getUserId(data) {
+        return http.post("/getid", data);
+    }
+
     getName(data) {
         return http.post("/getname", data);
     }

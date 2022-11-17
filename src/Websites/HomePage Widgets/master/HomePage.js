@@ -10,6 +10,7 @@ import Card from "react-bootstrap/Card";
 import LoginContext from "../../../login-context";
 import Pagination from "react-bootstrap/Pagination";
 import Collapse from "react-bootstrap/Collapse";
+import account from "../../../services/account";
 
 
 function HomePage() {
@@ -27,8 +28,33 @@ function HomePage() {
         JSON.parse(localStorage.getItem("totalPrice")) : 0
     );
 
+    const [shoppingCart, setShoppingCart] = useState([]);
+
     const [dynamicShoppingCart, setDynamicShoppingCart] = useState({});
 
+    function getUserId() {
+        try {
+            account.getId({jwt_token: localStorage.getItem("token")})
+                .then(response => {
+                    if (response.data.login_id !== "") {
+                        return response.data.login_id;
+                    }
+                })
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    // // Work on this later
+    // function getShoppingCart() {
+    //     const user = getUserId();
+    //     account.getShoppingCart({user: user})
+    //         .then(response => {
+                
+    //         })
+    // }
+
+    
 
     function setPagination(inputLength) {
         let paginationLength;
@@ -65,6 +91,7 @@ function HomePage() {
 
 
     useEffect(() => {
+        getUserId();
         retrieveFoods();
         retrieveCategories();
         retrieveDeliveryServices();
@@ -167,14 +194,17 @@ function HomePage() {
 
     function addToShoppingCart(inputFood) {
 
-        if (localStorage.getItem("shoppingCart")) {
-            localStorage.setItem("shoppingCart", JSON.stringify([...JSON.parse(localStorage.getItem("shoppingCart")), inputFood]))
-        } else {
-            localStorage.setItem("shoppingCart", JSON.stringify([inputFood]))
-        }
-        setTotalPrice(JSON.parse(localStorage.getItem("totalPrice")) + inputFood.price)
-        localStorage.setItem("totalPrice", JSON.parse(localStorage.getItem("totalPrice")) + inputFood.price);
-        adjustDynamicShoppingCart();
+        // if (localStorage.getItem("shoppingCart")) {
+        //     localStorage.setItem("shoppingCart", JSON.stringify([...JSON.parse(localStorage.getItem("shoppingCart")), inputFood]))
+        // } else {
+        //     localStorage.setItem("shoppingCart", JSON.stringify([inputFood]))
+        // }
+        // setTotalPrice(JSON.parse(localStorage.getItem("totalPrice")) + inputFood.price)
+        // localStorage.setItem("totalPrice", JSON.parse(localStorage.getItem("totalPrice")) + inputFood.price);
+        // adjustDynamicShoppingCart();
+        const user = getUserId();
+        account.updateShoppingCart({user: user, food_id: inputFood.food_id, amount: 1})
+
     }
 
     function adjustDynamicShoppingCart() {

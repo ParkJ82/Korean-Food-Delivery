@@ -25,6 +25,22 @@ app.post("/getname", authorization, async (req, res) => {
     }
 })
 
+app.post("/getid", authorization, async (req, res) => {
+    try {
+        const id = await pool.query(
+            "SELECT login_id FROM accounts WHERE account_id = $1",
+            [req.user]
+        )
+
+        res.json(user.rows[0]);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send("Server error");
+    }
+})
+
+
+
 app.post("/getshoppingcart", async (req, res) => {
     try {
         const { user } = req.body;
@@ -37,7 +53,7 @@ app.post("/getshoppingcart", async (req, res) => {
             `,
             [user]
         )
-        res.json(shoppingCart.rows)
+        res.json(shoppingCart.rows[0])
     } catch (err) {
         console.error(err.message);
         res.status(500).send("Server error");
@@ -56,41 +72,70 @@ app.post("/updaterating", async (req, res) => {
                     INSERT INTO ratings (login_id, service_id) VALUES ($1, $2);
                 END IF;
             END
-            `
+            `,
+            [user, delivery_service, rating]
         )
     } catch (err) {
-        
+        console.error(err.message);
+        res.status(500).send("Server Error"); 
     }
 })
+
+// app.post("/getshoppingcart", async (req, res) => {
+//     try {
+//         const { user } = req.body;
+//         const shoppingCart = await pool.query(
+//             `
+//             SELECT foods.food_name AS food_name, shopping_cart.amount AS amount, 
+//                 foods.delivered_by AS delivered_by FROM shopping_cart 
+//                         JOIN foods 
+//                             ON shopping_cart.food_id = foods.food_id 
+//                                 WHERE shopping_cart.login_id = $1
+//             `,
+//             [user]
+//         )
+//         res.json(shoppingCart.rows)
+//     } catch (err) {
+        
+//     }
+    
+
+// })
 
 app.post("/updateshoppingcart", async (req, res) => {
     try {
         const { user, food_id, amount } = req.body;
-        await pool.query(
+        console.log([user, food_id, amount])
+        const insertCart = await pool.query(
             `
+            DO
+            $$
             BEGIN
-                IF EXISTS (SELECT FROM shopping_cart WHERE login_id = $1, food_id = $2) THEN
-                    UPDATE shopping_cart SET amount = amount + $3 WHERE login_id = $1, food_id = $2;
-                ELSE
-                    INSERT INTO shopping_cart (login_id, food_id, amount) VALUES ($1, $2, $3);
-                END IF;
-            END
-            `,
+            IF EXISTS (SELECT FROM shopping_cart WHERE login_id = $1 AND food_id = $2) THEN
+                UPDATE shopping_cart SET amount = amount + $3 WHERE login_id = $1 AND food_id = $2;
+            ELSE
+                INSERT INTO shopping_cart (login_id, food_id, amount) VALUES (hi, 2, 3);
+            END IF;
+            END;
+            $$;
+            `
             [user, food_id, amount]
         )
 
-        const shoppingCart = await pool.query(
-            `
-            SELECT foods.food_name AS food_name, shopping_cart.amount AS amount, 
-                foods.delivered_by AS delivered_by FROM shopping_cart 
-                        JOIN foods 
-                            ON shopping_cart.food_id = foods.food_id 
-                                WHERE shopping_cart.login_id = $1
-            `,
-            [user]
-        )
+        res.json(insertCart)
 
-        res.json(shoppingCart.rows)
+        // const shoppingCart = await pool.query(
+        //     `
+        //     SELECT foods.food_name AS food_name, shopping_cart.amount AS amount,
+        //         foods.delivered_by AS delivered_by FROM shopping_cart 
+        //                 JOIN foods 
+        //                     ON shopping_cart.food_id = foods.food_id 
+        //                         WHERE shopping_cart.login_id = $1
+        //     `,
+        //     [user]
+        // )
+
+        // res.json(shoppingCart)
 
     } catch (err) {
         console.error(err.message);
