@@ -21,10 +21,6 @@ class AccountDataService {
         return http.post("/getshoppingcart", user);
     }
 
-    // createShoppingCart(data) {
-    //     return http.post("/newshoppingcart", data);
-    // }
-
     updateShoppingCart(data) {
         return http.post("/updateshoppingcart", data);
     }

@@ -1,15 +1,15 @@
 import React, { useContext, useEffect } from "react";
 import Table from "react-bootstrap/Table";
 import Button from "react-bootstrap/Button";
-import LoginContext from "../../login-context";
 import { useState } from "react";
 import account from "../../services/account";
 
 export default function ShoppingCart() {
     const [dynamicShoppingCart, setDynamicShoppingCart] = useState({});
     const [shoppingCart, setShoppingCart] = useState(
-        localStorage.getItem("shoppingCart") ? 
-        JSON.parse(localStorage.getItem("shoppingCart")) : [])
+        // localStorage.getItem("shoppingCart") ? 
+        // JSON.parse(localStorage.getItem("shoppingCart")) : 
+        [])
     const [totalPrice, setTotalPrice] = useState(localStorage.getItem("totalPrice") ?
         JSON.parse(localStorage.getItem("totalPrice")) : 0
     );
@@ -31,11 +31,11 @@ export default function ShoppingCart() {
         const user = getUserId();
         account.getShoppingCart({user: user})
             .then(response => {
-                
             })
     }
 
     useEffect(() => {
+        getShoppingCart()
         const inputShoppingCart = {};
         for (let index = 0; index < shoppingCart.length; index++) {
             if (shoppingCart[index].food_id in inputShoppingCart) {
@@ -49,8 +49,6 @@ export default function ShoppingCart() {
         setDynamicShoppingCart(inputShoppingCart);
         console.log(inputShoppingCart)
     }, [shoppingCart])
-
-
 
     function dictionaryToArray(inputDictionary) {
         const outputList = [];
