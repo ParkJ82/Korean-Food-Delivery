@@ -112,13 +112,13 @@ foodsRoutes.get("/foods/searchbyid/:id", async (req, res) => {
 
 
 // Gets foods from given delivery service and category
-// Parameters: req: {params: {deliveryservice: filtered delivery service, category: filtered category}}
+// Parameters: req: {params: {deliveryservice: filtered delivery service, category: filtered category, page: current page}}
 // Return: List of filtered foods
-foodsRoutes.get("/foods/:deliveryservice/:category", async (req, res) => {
-    const { deliveryservice, category } = req.params;
+foodsRoutes.get("/foods/:deliveryservice/:category/:page", async (req, res) => {
+    const { deliveryservice, category, page } = req.params;
     if (deliveryservice == "전체 업체" && category == "전체 음식") {
         try {
-            const filteredFood = await pool.query("SELECT * FROM foods");
+            const filteredFood = await pool.query("SELECT SKIP $1 FIRST 15 * FROM foods", [page]);
             res.json(filteredFood.rows);
         } catch (err) {
             console.error(err.message);
@@ -126,8 +126,8 @@ foodsRoutes.get("/foods/:deliveryservice/:category", async (req, res) => {
     } else if (deliveryservice == "전체 업체") {
         try {
             const filteredFood = await pool.query(
-                "SELECT * FROM foods WHERE category = $1",
-                [category]
+                "SELECT SKIP $1 FIRST 15 * FROM foods WHERE category = $2",
+                [page, category]
             )
         
             res.json(filteredFood.rows);
@@ -138,8 +138,8 @@ foodsRoutes.get("/foods/:deliveryservice/:category", async (req, res) => {
     else if (category == "전체 음식") {
         try {
             const filteredFood = await pool.query(
-                "SELECT * FROM foods WHERE delivered_by = $1",
-                [deliveryservice]
+                "SELECT SKIP $1 FIRST 15 * FROM foods WHERE delivered_by = $2",
+                [page, deliveryservice]
             )
         
             res.json(filteredFood.rows);
@@ -149,8 +149,8 @@ foodsRoutes.get("/foods/:deliveryservice/:category", async (req, res) => {
     } else {
         try {
             const filteredFood = await pool.query(
-                "SELECT * FROM foods WHERE delivered_by = $1 AND category = $2",
-                [deliveryservice, category]
+                "SELECT SKIP $1 FIRST 15 * FROM foods WHERE delivered_by = $2 AND category = $3",
+                [page, deliveryservice, category]
             )
         
             res.json(filteredFood.rows);

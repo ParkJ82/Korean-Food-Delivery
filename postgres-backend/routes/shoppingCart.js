@@ -1,14 +1,23 @@
 import express from "express";
 import pool from "../foods.js";
+import authorization from "../middleware/authorization.js";
 
 const shoppingCartRoutes = express.Router();
 
 // Gets shopping cart of the appropriate user
-// Parameters: req: {user: login_id}
+// Parameters: req: {token: token}
 // Return: shopping cart food list
-shoppingCartRoutes.post("/getshoppingcart", async (req, res) => {
+shoppingCartRoutes.post("/getshoppingcart", authorization, async (req, res) => {
     try {
         const { user } = req.body;
+
+        const findLoginId = await pool.query(
+            "SELECT login_id FROM accounts WHERE account_id=$1",
+            [user]
+        )
+
+        const login_id = findLoginId.rows[0]
+
         const shoppingCart = await pool.query(
             `
             SELECT foods.foods_id as foods_id, foods.food_name AS food_name, shopping_cart.amount AS amount, 
@@ -16,7 +25,7 @@ shoppingCartRoutes.post("/getshoppingcart", async (req, res) => {
                     JOIN foods ON shopping_cart.food_id = foods.food_id 
                         WHERE shopping_cart.login_id = $1
             `,
-            [user]
+            [login_id]
         )
         res.json(shoppingCart.rows[0])
     } catch (err) {
@@ -60,7 +69,7 @@ shoppingCartRoutes.post("/updateshoppingcart", async (req, res) => {
             [user]
         )
 
-        res.json(shoppingCart)
+        res.json(shoppingCart.rows)
 
     } catch (err) {
         console.error(err.message);

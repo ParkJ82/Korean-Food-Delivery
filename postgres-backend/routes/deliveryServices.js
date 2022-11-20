@@ -26,13 +26,13 @@ deliveryServiceRoutes.post("/delivery_services", async (req, res) => {
 
 
 // NEEDS MODIFICATION
-// Gets all the delivery services along with the ratings
+// Gets all the delivery services
 // Parameters: none
-// Return: everything of rows, ratings
+// Return: everything of delivery_services
 deliveryServiceRoutes.get("/delivery_services", async (req, res) => {
     try {
         const allDeliveryServices = await pool.query(
-            "SELECT service_id, service_name, service_email, service_phonenumber, delivery_minimum, order_by, set_menu_minimum, rated_users, ROUND((total_rating / rated_users)::numeric, 1) AS ratings FROM delivery_services");
+            "SELECT * FROM delivery_services");
         res.json(allDeliveryServices.rows);
     } catch (err) {
         console.error(err.message);
@@ -75,18 +75,6 @@ deliveryServiceRoutes.put("/delivery_services/:id", async (req, res) => {
         console.error(err.message);
     }
 })
-
-
-// POTENTIALLY UNUSED/MOVED TO PYTHON
-//
-//
-deliveryServiceRoutes.put("/delivery_services/:name/rating/:rating", async (req, res) => {
-    const { name, rating } = req.params;
-    const updateRating = await pool.query("UPDATE delivery_services SET rated_users = rated_users + 1, total_rating = total_rating + $1 WHERE service_name = $2",
-    [rating, name])
-})
-
-
 
 
 export default deliveryServiceRoutes;

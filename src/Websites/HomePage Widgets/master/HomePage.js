@@ -27,10 +27,11 @@ function HomePage() {
         JSON.parse(localStorage.getItem("totalPrice")) : 0
     );
 
-    const [shoppingCart, setShoppingCart] = useState([]);
-
     const [dynamicShoppingCart, setDynamicShoppingCart] = useState({});
 
+    // Gets login_id of coresponding token
+    // Parameters: none
+    // Return: login_id
     function getUserId() {
         try {
             account.getId({jwt_token: localStorage.getItem("token")})
@@ -44,49 +45,35 @@ function HomePage() {
         }
     }
 
-    // // Work on this later
-    // function getShoppingCart() {
-    //     const user = getUserId();
-    //     account.getShoppingCart({user: user})
-    //         .then(response => {
+    // WORK ON THIS LATER
+    // Gets shopping cart of corresponding login_id
+    // Parameters: none
+    // Return: shopping cart
+    function getShoppingCart() {
+        const user = getUserId();
+        account.getShoppingCart({user: user})
+            .then(response => {
                 
-    //         })
-    // }
+            })
+    }
 
+    // Retrieve foods of size 15 from appropriate page
+    // 
+    // 
+    function retrieveFoods(inputPage) {
+        FoodDataService.getAllFoods(inputPage)
+            .then(response => {
+                console.log(response.data);
+                setFoods(response.data);
+                setArrayLength(response.data.length)
+            })
+            .catch(e => {
+                console.log(e);
+            });
+    };
     
 
-    function setPagination(inputLength) {
-        let paginationLength;
-        const paginationList = [];
-        if (inputLength % 15 == 0) {
-            paginationLength = Math.floor(inputLength / 15);
-        }
-        else {
-            paginationLength = Math.floor(inputLength / 15) + 1;
-        }
-        paginationList.push(
-            <Pagination.Item>
-                이전
-            </Pagination.Item>
-        )
-        for (let index = 0; index < paginationLength; paginationLength++) {
-            paginationList.push(
-                <Pagination.Item active={index == 0}>
-                    {index + 1}
-                </Pagination.Item>
-            )
-        }
-        paginationList.push(
-            <Pagination.Item>
-                다음
-            </Pagination.Item>
-        )
-        return paginationList.map((page) => {
-            return (
-                page
-            )
-        });
-    }
+    
 
 
     useEffect(() => {
@@ -111,17 +98,7 @@ function HomePage() {
     // }, [user.shoppingCart]);
 
 
-    function retrieveFoods(inputPage) {
-        FoodDataService.getAllFoods(inputPage)
-            .then(response => {
-                console.log(response.data);
-                setFoods(response.data);
-                setArrayLength(response.data.length)
-            })
-            .catch(e => {
-                console.log(e);
-            });
-    };
+    
 
     function retrieveCategories() {
         FoodDataService.getCategories()
@@ -177,6 +154,7 @@ function HomePage() {
         }
         
     }
+
 
     function onChangeSearchCategory(e) {
         const searchCategory = e.target.value;
@@ -248,6 +226,39 @@ function HomePage() {
                 service
             )
         })
+    }
+
+    function setPagination(inputLength) {
+        let paginationLength;
+        const paginationList = [];
+        if (inputLength % 15 == 0) {
+            paginationLength = Math.floor(inputLength / 15);
+        }
+        else {
+            paginationLength = Math.floor(inputLength / 15) + 1;
+        }
+        paginationList.push(
+            <Pagination.Item>
+                이전
+            </Pagination.Item>
+        )
+        for (let index = 0; index < paginationLength; paginationLength++) {
+            paginationList.push(
+                <Pagination.Item active={index == 0}>
+                    {index + 1}
+                </Pagination.Item>
+            )
+        }
+        paginationList.push(
+            <Pagination.Item>
+                다음
+            </Pagination.Item>
+        )
+        return paginationList.map((page) => {
+            return (
+                page
+            )
+        });
     }
 
 

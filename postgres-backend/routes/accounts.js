@@ -8,8 +8,8 @@ import bcrypt from "bcrypt";
 const accountRoutes = express.Router();
 
 
-// Gets corresponding name from account_id input
-// Parameters: req: {user: account_id retrieved from authorization}
+// Gets corresponding name from token input
+// Parameters: req: {user: token retrieved from authorization}
 // Return: corresponding name
 accountRoutes.post("/getname", authorization, async (req, res) => {
     try {
