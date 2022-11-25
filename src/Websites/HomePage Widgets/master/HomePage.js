@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import '../../components/LetterFonts.css';
 import Button from "react-bootstrap/Button"
 import Alert from "react-bootstrap/Alert";
@@ -18,23 +18,42 @@ function HomePage() {
     const [categories, setCategories] = useState(["전체 음식"]);
     const [searchDeliveryService, setSearchDeliveryService] = useState("전체 업체");
     const [deliveryServices, setDeliveryServices] = useState(["전체 업체"]);
-    const [ratingStars, setRatingStars] = useState([]);
+
+    // Current user token
+    const [token, setToken] = useState(
+        localStorage.getItem("token") ? localStorage.getItem("token") : null)
+
 
     const [arrayLength, setArrayLength] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
-    const [open, setOpen] = useState(false);
-    const [totalPrice, setTotalPrice] = useState(localStorage.getItem("totalPrice") ?
-        JSON.parse(localStorage.getItem("totalPrice")) : 0
-    );
 
+    // Controls Collapse onClick
+    const [open, setOpen] = useState(false);
+
+    // Current total price in shopping cart
+    const [totalPrice, setTotalPrice] = useState(0);
+
+    // Hashmap: {food_id: {food object, amount}}
     const [dynamicShoppingCart, setDynamicShoppingCart] = useState({});
 
+    const [shoppingCartList, setShoppingCartList] = useState([]);
+
+
+    useEffect(() => {
+        getShoppingCart({jwt_token: token});
+        retrieveFoods();
+        retrieveCategories();
+        retrieveDeliveryServicesAndRatings();
+    }, [localStorage.getItem("token"), totalPrice])
+
+
+
     // Gets login_id of coresponding token
-    // Parameters: none
+    // Parameters: {token: current token}
     // Return: login_id
-    function getUserId() {
+    async function getUserId(token) {
         try {
-            account.getId({jwt_token: localStorage.getItem("token")})
+            account.getId(token)
                 .then(response => {
                     if (response.data.login_id !== "") {
                         return response.data.login_id;
@@ -47,21 +66,76 @@ function HomePage() {
 
     // WORK ON THIS LATER
     // Gets shopping cart of corresponding login_id
-    // Parameters: none
-    // Return: shopping cart
-    function getShoppingCart() {
-        const user = getUserId();
-        account.getShoppingCart({user: user})
+    // and set totalPrice and dynamicShoppingCart
+    // Parameters: token: {jwt_token: current_token}
+    // Return: none
+    async function getShoppingCart(token) {
+        var shoppingCart = []
+        // var totalPrice = 0;
+        var inputCart = [];
+        if (!token.jwt_token) {
+            if (localStorage.getItem("shoppingCart")) {
+                shoppingCart = JSON.parse(localStorage.getItem("shoppingCart"))
+            } else {
+                shoppingCart = [];
+                localStorage.setItem("shoppingCart", JSON.stringify([]));
+            }
+        } else {
+        await account.getShoppingCart(token)
+            // response: {data: list of {food_id, food_name, category, price, delivered_by, is_set_menu, amount}}
             .then(response => {
-                
+                inputCart = response.data
             })
+        }
+        for (let index = 0; index < inputCart.length; ++index) {
+            for (let amount = 0; amount < inputCart[index].amount; ++amount) {
+                shoppingCart
+                    .push(
+                        {food_id: inputCart[index].food_id, food_name: inputCart[index],
+                            category: inputCart[index].category, price: inputCart[index].price,
+                            delivered_by: inputCart[index].delivered_by, is_set_menu: inputCart[index].is_set_menu
+                    })
+            }
+            // totalPrice += inputCart[index].price * inputCart[index].amount;
+        }
+        // setTotalPrice(totalPrice);
+        setShoppingCartList(shoppingCart);
+        adjustDynamicShoppingCart(shoppingCart);
+    }
+
+    // Add Food to Shopping Cart and update shoppingCart
+    // and Set totalPrice and shoppingCartList to updated values
+    // Paremeters: inputFood: food object, token: {jwt_token: current token},
+    // totalPrice: current total price before update, shoppingCartList: cart before update
+    // Return: none
+    async function addToShoppingCart(inputFood, token, totalPrice, shoppingCartList) {
+        if (!token.jwt_token) {
+            if (localStorage.getItem("shoppingCart")) {
+                const shoppingCart = JSON.parse(localStorage.getItem("shoppingCart"));
+                shoppingCart.push(inputFood);
+                localStorage.setItem("shoppingCart", JSON.stringify(shoppingCart))
+            } else {
+                localStorage.setItem("shoppingCart", JSON.stringify([inputFood]))
+            }
+        } else {
+            const user = getUserId(token);
+            await account.updateShoppingCart({user: user, food_id: inputFood.food_id, amount: 1}, token)
+        }
+        const newTotalPrice = totalPrice + inputFood.price;
+        setTotalPrice(newTotalPrice);
+        shoppingCartList.push(inputFood);
+        console.log(shoppingCartList);
+        setShoppingCartList(shoppingCartList);
+        adjustDynamicShoppingCart(shoppingCartList);
     }
 
     // Retrieve foods of size 15 from appropriate page
-    // 
-    // 
-    function retrieveFoods(inputPage) {
-        FoodDataService.getAllFoods(inputPage)
+    // and set foods variable to be a list of food objects
+    // also sets array length to be the length of list
+    // Parameters: current page number
+    // Return: none
+    async function retrieveFoods() {
+        FoodDataService.getAllFoods()
             .then(response => {
                 console.log(response.data);
                 setFoods(response.data);
@@ -72,55 +146,33 @@ function HomePage() {
             });
     };
     
-
-    
-
-
-    useEffect(() => {
-        getUserId();
-        retrieveFoods();
-        retrieveCategories();
-        retrieveDeliveryServices();
-    }, [])
-
-    // useEffect(() => {
-    //     const inputShoppingCart = {};
-    //     for (let index = 0; index < user.shoppingCart.length; index++) {
-    //         if (user.shoppingCart[index].food_id in inputShoppingCart) {
-    //             inputShoppingCart[user.shoppingCart[index].food_id].Amount++;
-    //         }
-    //         else {
-    //             inputShoppingCart[user.shoppingCart[index].food_id] = 
-    //             {Food: user.shoppingCart[index], Amount: 1}
-    //         }
-    //     }
-    //     setDynamicShoppingCart(inputShoppingCart);
-    // }, [user.shoppingCart]);
-
-
-    
-
-    function retrieveCategories() {
+    // Retrive categories from all foods
+    // and set categories to be a list of category strings
+    // Parameters: none
+    // Return: none
+    async function retrieveCategories() {
         FoodDataService.getCategories()
             .then(response => {
                 console.log(response.data);
                 console.log([...(new Set(response.data.map(({category})=>category)))])
-                setCategories(["전체 음식"].concat([...(new Set(response.data.map(({category})=>category)))]))
+                setCategories(["전체 음식"]
+                    .concat([...(new Set(response.data.map(({category})=>category)))]))
             })
             .catch(e => {
                 console.log(e);
             });
     };
 
-    function retrieveDeliveryServices() {
+    
+    // Retrive all delivery services and set deliveryServices
+    // to be list of delivery service object containing name, rating, rated amount of users
+    // Parameters: none
+    // Return: none
+    async function retrieveDeliveryServicesAndRatings() {
         DeliveryServiceDataService.getAllDeliveryServices()
             .then(response => {
-
                 console.log(response.data);
-                const ratingWithService = [...(new Set(response.data.map(({service_name, ratings})=>[service_name, ratings])))];
-                setDeliveryServices([["전체 업체"]].concat([...(new Set(response.data.map(({service_name, ratings, rated_users})=>[service_name, ratings, rated_users])))]));
-                setRatingStars(ratingWithService);
-                console.log([...(new Set(response.data.map(({service_name})=>service_name)))])
+                setDeliveryServices([["전체 업체"]].concat([...(new Set(response.data.map(({service_name, rating, rated_users})=>[service_name, rating, rated_users])))]));                
             })
             .catch(e => {
                 console.log(e);
@@ -128,6 +180,10 @@ function HomePage() {
     };
 
 
+    // Filters out food based on category and delivery service selected
+    // Sets foods after appropriate filter
+    // Parameters: inputCategory: string of category, inputDeliveryService: string of delivery service
+    // Return: none
     function ultimateFilter(inputCategory, inputDeliveryService) {
         var soupCategory = "찌개";
         if (inputCategory == "국/찌개") {
@@ -155,7 +211,10 @@ function HomePage() {
         
     }
 
-
+    // Sets the category to searchCategory 
+    // (to be displayed to the chosen one) and filters food accordingly
+    // Parameters: e: {target: {value: chosen category from dropdown}}
+    // Return: none
     function onChangeSearchCategory(e) {
         const searchCategory = e.target.value;
         setSearchCategory(searchCategory);
@@ -163,30 +222,24 @@ function HomePage() {
         ultimateFilter(searchCategory, searchDeliveryService);
     }
 
+    // Sets the delivery service to searchDeliveryService 
+    // (to be displayed to the chosen one) and filters food accordingly
+    // Parameters: e: {target: {value: chosen delivery service from dropdown}}
+    // Return: none
     function onChangeSearchDeliveryService(e) {
         const searchDeliveryService = e.target.value;
         setSearchDeliveryService(searchDeliveryService);
         ultimateFilter(searchCategory, searchDeliveryService);
     }
 
-    function addToShoppingCart(inputFood) {
-
-        // if (localStorage.getItem("shoppingCart")) {
-        //     localStorage.setItem("shoppingCart", JSON.stringify([...JSON.parse(localStorage.getItem("shoppingCart")), inputFood]))
-        // } else {
-        //     localStorage.setItem("shoppingCart", JSON.stringify([inputFood]))
-        // }
-        // setTotalPrice(JSON.parse(localStorage.getItem("totalPrice")) + inputFood.price)
-        // localStorage.setItem("totalPrice", JSON.parse(localStorage.getItem("totalPrice")) + inputFood.price);
-        // adjustDynamicShoppingCart();
-        const user = getUserId();
-        account.updateShoppingCart({user: user, food_id: inputFood.food_id, amount: 1})
-
-    }
-
-    function adjustDynamicShoppingCart() {
+    
+    // Converts shopping cart list to dynamic shopping cart
+    // and sets dynamicShoppingCart = {food_index: {Food Object, amount}}
+    // Parameters: shoppingCartList: list of {food_id, food_name, category, price, delivered_by, is_set_menu}
+    // Return: none
+    async function adjustDynamicShoppingCart(shoppingCartList) {
         const inputShoppingCart = {};
-        const shoppingCartList = JSON.parse(localStorage.getItem("shoppingCart"));
+        var totalPrice = 0;
         for (let index = 0; index < shoppingCartList.length; index++) {
             if (shoppingCartList[index].food_id in inputShoppingCart) {
                 inputShoppingCart[shoppingCartList[index].food_id].Amount++;
@@ -195,10 +248,18 @@ function HomePage() {
                 inputShoppingCart[shoppingCartList[index].food_id] = 
                 {Food: shoppingCartList[index], Amount: 1}
             }
+            totalPrice += shoppingCartList[index].price;
         }
+
+        console.log(inputShoppingCart);
+        
+        setTotalPrice(totalPrice);
         setDynamicShoppingCart(inputShoppingCart);
     }
 
+    // Return subtotals of each delivery service
+    // Parameters: inputDictionary: {food_index: {Food Object, amount}}
+    // Return: all div of delivery_service.delivered_by: $total of that delivery service
     function eachDeliveryTotal(inputDictionary) {
         const totalDictionary = {};
         if (inputDictionary.length == 0) {
@@ -228,6 +289,9 @@ function HomePage() {
         })
     }
 
+    // Makes a pagination based on the length of the input given
+    // Parameters: inputLength (length of foods)
+    // Return: Pagination <이전>, pages, <다음>
     function setPagination(inputLength) {
         let paginationLength;
         const paginationList = [];
@@ -361,13 +425,15 @@ function HomePage() {
                                     <Link to={`/foods/${food.food_id}`}>
                                         상세보기
                                     </Link>&nbsp;&nbsp;&nbsp;
-                                <Button onClick={() => addToShoppingCart(food)} className="btn btn-primary btn-sm">장바구니에 담기</Button>
+                                <Button onClick={() => addToShoppingCart(food, {jwt_token: token}, totalPrice, shoppingCartList)} className="btn btn-primary btn-sm">장바구니에 담기</Button>
                             </Card.Body>
                         </Card>
                         </div>
                     )
                 })}
             </div>
+
+            {/* {setPagination(arrayLength)} */}
 
 
             <Button href="/purchase" className="btn btn-warning">바로 구매하기</Button>

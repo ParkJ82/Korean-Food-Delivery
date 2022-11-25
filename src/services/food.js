@@ -45,11 +45,10 @@ class FoodDataService {
     }
 
     // Get first 15 foods based on filtered category and delivery service
-    // Parameters: search category, search delivery service, page
+    // Parameters: search category, search delivery service
     // Return: {data: list of {food_id, food_name, category, price, delivered_by, is_set_menu}}
-    filterByCategoryAndDeliveryService(searchCategory, searchDeliveryService, page=0) {
-        const pageFood = page * 15;
-        return http.get(`/foods/${searchDeliveryService}/${searchCategory}/${pageFood}`);
+    filterByCategoryAndDeliveryService(searchCategory, searchDeliveryService) {
+        return http.get(`/foods/${searchDeliveryService}/${searchCategory}`);
     }
 
 }

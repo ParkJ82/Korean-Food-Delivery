@@ -11,7 +11,6 @@ function jwtGenerator(account_id) {
     const payload = {
         user: account_id
     };
-
     return sign(payload, process.env.jwtSecret, {expiresIn: "1hr" });
 }
 

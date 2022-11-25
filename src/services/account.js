@@ -6,6 +6,7 @@ class AccountDataService {
     // Parameters: data: {login_id: input id, login_password: input password}
     // Return: {data: {token: appropriate token from login}}
     loginToAccount(data) {
+        console.log(data);
         return http.post("/login", data);
     }
 
@@ -33,16 +34,17 @@ class AccountDataService {
 
     // Middleware for retriving shopping cart with token
     // Parameters: data: {jwt_token: current token}
-    // Return: {data: list of {foods_id: food id, food_name: name of food, amount: amount of food}}
-    getShoppingCart(user) {
-        return http.post("/getshoppingcart", user);
+    // Return: {data: list of {food object, amount: amount of food}}
+    getShoppingCart(data) {
+        return http.post("/getshoppingcart", data);
     }
 
     // Middleware for updating, retriving shopping cart with token
     // Parameters: data: {user: login_id, food_id: food id, amount: added amount}
-    // Return: {data: list of {foods_id: food id, food_name: name of food, amount: amount of food}}
-    updateShoppingCart(data) {
-        return http.post("/updateshoppingcart", data);
+    // Return: {data: list of {food object, amount: amount of food}}
+    updateShoppingCart(data, token) {
+        http.post("/updateshoppingcart", data);
+        return http.post("/getshoppingcart", token);
     }
 
 }

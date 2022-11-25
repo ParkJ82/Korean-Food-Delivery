@@ -4,79 +4,73 @@ import authorization from "../middleware/authorization.js";
 
 const shoppingCartRoutes = express.Router();
 
-// Gets shopping cart of the appropriate user
-// Parameters: req: {token: token}
-// Return: shopping cart food list
-shoppingCartRoutes.post("/getshoppingcart", authorization, async (req, res) => {
-    try {
-        const { user } = req.body;
+async function getLoginIdFromAccountId(accountId) {
+    const findLoginId = await pool.query(
+        "SELECT login_id FROM accounts WHERE account_id=$1",
+        [accountId]
+    )
 
-        const findLoginId = await pool.query(
-            "SELECT login_id FROM accounts WHERE account_id=$1",
-            [user]
-        )
+   return findLoginId.rows[0].login_id
+}
 
-        const login_id = findLoginId.rows[0]
+function handleServerError(error, serverResponse) {
+    console.error(error.message);
+    serverResponse.status(500).send("Server error");
+}
 
-        const shoppingCart = await pool.query(
-            `
-            SELECT foods.foods_id as foods_id, foods.food_name AS food_name, shopping_cart.amount AS amount, 
-                foods.delivered_by AS delivered_by, foods.price as price FROM shopping_cart 
-                    JOIN foods ON shopping_cart.food_id = foods.food_id 
-                        WHERE shopping_cart.login_id = $1
-            `,
-            [login_id]
-        )
-        res.json(shoppingCart.rows[0])
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send("Server error");
-    }
-})
+async function getShoppingCart(loginId, serverResponse) {
+    const shoppingCart = await pool.query(
+        `
+        SELECT foods.*, shopping_cart.login_id AS login_id, shopping_cart.amount AS amount FROM foods
+                JOIN shopping_cart ON shopping_cart.food_id = foods.food_id 
+                    WHERE login_id = $1;
+        `,
+        [loginId]
+    )
+    serverResponse.json(shoppingCart.rows)
+}
 
-// NEEDS MODIFICATION
-// Updates and gets shopping cart of the appropriate user
-// Parameters: req: {user: login_id, food_id: food_id, amount: added amount}
-// Return: shopping cart food list
-shoppingCartRoutes.post("/updateshoppingcart", async (req, res) => {
-    try {
-        const { user, food_id, amount } = req.body;
-        console.log([user, food_id, amount])
-        const insertCart = await pool.query(
-            `
-            DO
-            $$
-            BEGIN
-            IF EXISTS (SELECT FROM shopping_cart WHERE login_id = $1 AND food_id = $2) THEN
-                UPDATE shopping_cart SET amount = amount + $3 WHERE login_id = $1 AND food_id = $2;
-            ELSE
-                INSERT INTO shopping_cart (login_id, food_id, amount) VALUES (hi, 2, 3);
-            END IF;
-            END;
-            $$;
-            `
-            [user, food_id, amount]
-        )
+function returnShoppingCart(serverRequest, serverResponse) {
+    const { user } = serverRequest;
+    const loginId = getLoginIdFromAccountId(user)
+    getShoppingCart(loginId, serverResponse)
+}
 
-        const shoppingCart = await pool.query(
-            `
-            SELECT foods.food_name AS food_name, shopping_cart.amount AS amount,
-                foods.delivered_by AS delivered_by FROM shopping_cart 
-                        JOIN foods 
-                            ON shopping_cart.food_id = foods.food_id 
-                                WHERE shopping_cart.login_id = $1
-            `,
-            [user]
-        )
+async function updateShoppingCart(serverRequest, serverResponse) {
+    const { login_id, food_id, amount } = serverRequest.body;
+    const insertCart = await pool.query(
+        `INSERT INTO shopping_cart (login_id, food_id, amount) VALUES ($1, $2, $3) 
+            ON CONFLICT (login_id, food_id) DO UPDATE 
+                SET amount = shopping_cart.amount + $3 RETURNING *;`,
+        [login_id, food_id, amount]
+    )
+    serverResponse.json(insertCart.rows[0])
+}
 
-        res.json(shoppingCart.rows)
+function setShoppingCartRoutesAPI() {
+    // Gets shopping cart of the appropriate user
+    // Parameters: req: {jwt_token: token}
+    // Return: shopping cart food object list and the login_id
+    shoppingCartRoutes.post("/getshoppingcart", authorization, async (req, res) => {
+        try {
+            returnShoppingCart(req, res)       
+        } catch (err) {
+            handleServerError(err, res)
+        }
+    })
 
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send("Server Error");   
-    }
-})
+    // NEEDS MODIFICATION
+    // Updates and gets shopping cart of the appropriate user
+    // Parameters: req: {user: login_id, food_id: food_id, amount: added amount}
+    // Return: none
+    shoppingCartRoutes.post("/updateshoppingcart", async (req, res) => {
+        try {
+            updateShoppingCart(req, res)
+        } catch (err) {
+            handleServerError(err, res) 
+        }
+    })
+}
 
-
-
+setShoppingCartRoutesAPI()
 export default shoppingCartRoutes;
