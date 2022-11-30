@@ -5,7 +5,7 @@ import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
 import Row from "react-bootstrap/Row";
 import AccountDataService from "../../services/account";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 
 
 const LoginWidget = () => {
@@ -20,45 +20,55 @@ const LoginWidget = () => {
 
     const [user, setUser] = useState(initialUserState);
 
-    const handleSubmit = (event) => {
+    function handleSubmit(event) {
+        handleCheckValidity(event)
+        setValidated(true);
+    }
+
+    function handleCheckValidity(event) {
         const form = event.currentTarget;
         if (form.checkValidity() === false) {
             event.preventDefault();
             event.stopPropagation();
         }
-
-        setValidated(true);
-
-        
     }
 
-    function login(inputUser) {
+    async function login(inputUser) {
         try {
-            AccountDataService.loginToAccount(inputUser)
+            AccountDataService.loginToAccountAndGetToken(inputUser)
                 .then(response => {
-                    console.log("test");
-                    console.log(response);
-                    if (response.data.token) {
-                        localStorage.setItem("token", response.data.token);
-                        toast.success("Logged in Successfully");
-                    } else {
-                        toast.error(response);
-                    }
+                    handleLogin(response)
                 })
         } catch (err) {
-            console.error(err.message);
+            handleLoginError(err)
         }
     }
 
-    const handleInputChange = event => {
+    async function handleLogin(response) {
+        if (response.data.token) {
+            await storeTokenInLocalStorage(response.data.token)
+        } else {
+            gettoastError(response)
+        }
+    }
+
+    async function storeTokenInLocalStorage(token) {
+        localStorage.setItem("token", token);
+        toast.success("Logged in Successfully");
+    }
+
+    function gettoastError(response) {
+        toast.error(response);
+    }
+
+    function handleLoginError(error) {
+        console.error(error.message);
+    }
+
+    function handleInputChange(event) {
         const { name, value } = event.target;
         setUser({ ...user, [name]: value });
     };
-
-    // function login() {
-    //     AccountDataService.loginToAccount(user)
-    //     inputUser.login(user);
-    // }
 
     return (
         <div>
@@ -104,7 +114,8 @@ const LoginWidget = () => {
                         </InputGroup>
                     </Form.Group>
                 </Row>
-                <Button onClick={() => login(user)} type="submit">로그인</Button> 계정이 없으신가요? 그렇다면 <strong><a href="/createaccount">회원가입하기</a></strong>
+                <Button onClick={() => login(user)} type="submit">로그인</Button> 계정이 없으신가요? 그렇다면 
+                    <strong><a href="/createaccount">회원가입하기</a></strong>
             </Form>
             
         </div>

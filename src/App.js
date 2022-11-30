@@ -1,5 +1,3 @@
-// CLEANED
-
 import React from "react";
 import { Route, Routes, Outlet, Navigate} from "react-router-dom";
 import CreateAccountWebsite from './Websites/Create Account Widget/CreateAccount';
@@ -18,12 +16,10 @@ import RateDelivery from "./Websites/Rate Delivery/RateDelivery";
 
 function App() {
 
-  // Deny access to Routes the user is already Logged In
-  // No parameters
-  function LoginPrivateRoutes() {
-    let auth = {token: localStorage.getItem("token")}
+  function CreateNonLoginPrivateRoutes() {
+    let authorization = {token: localStorage.getItem("token")}
     return (
-      auth.token ? <Navigate to="/"/> : <Outlet/>
+      authorization.token ? <Navigate to="/"/> : <Outlet/>
     )
   }
 
@@ -32,11 +28,11 @@ function App() {
         <TopWidget/>
 
         <Routes>
-          <Route exact path="/" element={<HomePage />}/>
-          <Route element={<LoginPrivateRoutes/>}>
+          <Route element={<CreateNonLoginPrivateRoutes/>}>
             <Route path="/createaccount" element={<CreateAccountWebsite/>}/>
             <Route path="/login" element={<Login/>}/>
           </Route>
+          <Route exact path="/" element={<HomePage />}/>
           <Route path="/purchase" element={<Purchase/>}/>
           <Route path="/newcompany" element={<NewCompany />}/>
           <Route path="/shoppingcart" element={<ShoppingCart/>}/>

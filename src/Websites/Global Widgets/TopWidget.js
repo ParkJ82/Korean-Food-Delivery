@@ -1,49 +1,53 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
-import account from "../../services/account";
-import { toast } from "react-toastify";
+import AccountDataService from "../../services/account";
 
 
 function TopWidget() {
-    // const inputUser = useContext(LoginContext);
     const [user, setUser] = useState(null);
-
-    function getProfile() {
-        try {
-            account.getName({jwt_token: localStorage.getItem("token")})
-                .then(response => {
-                    if (response.data.name !== "") {
-                        setUser(response.data.name)
-                    }
-                })
-        } catch (err) {
-            console.error(err);
-        }
-    }
-
-    function logout(e) {
-        e.preventDefault();
-        try {
-            localStorage.removeItem("token");
-            localStorage.removeItem("totalPrice");
-            localStorage.removeItem("shoppingCart");
-            setUser(null);
-            // inputUser.login();
-            toast.success("Logout successfully")
-        } catch (err) {
-            console.error(err.message);
-        }
-    }
 
     useEffect(() => {
         getProfile()
     }, [])
 
+    async function getProfile() {
+        try {
+            await AccountDataService.getNameFromToken(localStorage.getItem("token"))
+                .then(response => {
+                    handleSetUser(response.data.name)
+                })
+        } catch (err) {
+            handleWidgetError(err)
+        }
+    }
 
-    console.log(user);
+    async function handleSetUser(name) {
+        console.log(name)
+        if (name !== "") {
+            setUser(name)
+        }
+    }
+
+    function logout() {
+        try {
+            handleLogout()
+        } catch (err) {
+            handleWidgetError(err)
+        }
+    }
+
+    function handleLogout() {
+        localStorage.removeItem("token");
+        localStorage.removeItem("shoppingCart");
+        setUser(null);
+    }
+
+    function handleWidgetError(error) {
+        console.error(error.message)
+    }
 
     return (
         <>
@@ -68,8 +72,8 @@ function TopWidget() {
                     {user ? (
                     <>
                         <Nav.Link href="/">
-                            현재 회원: {user} &nbsp; 
-                            <Button onClick={(e) => logout(e)} className="btn btn-success">로그아웃</Button>
+                            현재 회원: {user} &nbsp;
+                            <Button onClick={() => logout()} className="btn btn-success">로그아웃</Button>
                         </Nav.Link>
                     </>
                     ) : (

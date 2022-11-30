@@ -9,7 +9,9 @@ import Form from "react-bootstrap/Form";
 import Card from "react-bootstrap/Card";
 import Pagination from "react-bootstrap/Pagination";
 import Collapse from "react-bootstrap/Collapse";
-import account from "../../../services/account";
+import AccountDataService from "../../../services/account";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
+import Popover from "react-bootstrap/Popover";
 
 
 function HomePage() {
@@ -18,297 +20,377 @@ function HomePage() {
     const [categories, setCategories] = useState(["전체 음식"]);
     const [searchDeliveryService, setSearchDeliveryService] = useState("전체 업체");
     const [deliveryServices, setDeliveryServices] = useState(["전체 업체"]);
+    const [totalPrice, setTotalPrice] = useState(0);
+    const [dynamicShoppingCart, setDynamicShoppingCart] = useState({});
+    const [shoppingCartList, setShoppingCartList] = useState([]);
+    const foodAmounts = [1, 2, 3, 4, 5]
 
-    // Current user token
-    const [token, setToken] = useState(
-        localStorage.getItem("token") ? localStorage.getItem("token") : null)
-
-
+    const token = localStorage.getItem("token") ? localStorage.getItem("token") : null
+    const [ amount, setAmount ] = useState(1)
     const [arrayLength, setArrayLength] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
 
     // Controls Collapse onClick
     const [open, setOpen] = useState(false);
 
-    // Current total price in shopping cart
-    const [totalPrice, setTotalPrice] = useState(0);
-
-    // Hashmap: {food_id: {food object, amount}}
-    const [dynamicShoppingCart, setDynamicShoppingCart] = useState({});
-
-    const [shoppingCartList, setShoppingCartList] = useState([]);
-
 
     useEffect(() => {
-        getShoppingCart({jwt_token: token});
+        getShoppingCartList();
         retrieveFoods();
         retrieveCategories();
         retrieveDeliveryServicesAndRatings();
-    }, [localStorage.getItem("token"), totalPrice])
+    }, [])
+
+    useEffect(() => {
+        const currentTotalCost = getTotalCost()
+        setTotalPrice(currentTotalCost)
+    }, [shoppingCartList])
+
+    function getPopover(food) {
+        return (
+            <Popover id="popover-basic">
+            <Popover.Header as="h3">
+                <strong>{food.food_name}</strong>
+            </Popover.Header>
+            <Popover.Body>
+                수량: &nbsp;&nbsp;
+            <div className="div-inline" style={{width: '60px'}}>
+                <Form.Select onChange={onChangeAmount} >
+                    {foodAmounts.map(amount => {
+                        return (
+                            <option value={amount}> {amount} </option>
+                        )
+                    })}
+                </Form.Select>
+            </div>
+                <br/>
+            <Button onClick={() => addToShoppingCart(food)}>장바구니에 넣기</Button>
+            </Popover.Body>
+            </Popover>
+        )
+    }
+
+    function onChangeAmount(e) {
+        const amount = e.target.value;
+        setAmount(amount);
+    }
 
 
 
-    // Gets login_id of coresponding token
-    // Parameters: {token: current token}
-    // Return: login_id
-    async function getUserId(token) {
+
+    async function getUserIdFromToken(token) {
         try {
-            account.getId(token)
+            let loginId;
+            await AccountDataService.getUserIdFromToken(token)
                 .then(response => {
-                    if (response.data.login_id !== "") {
-                        return response.data.login_id;
-                    }
+                    loginId = response.data.login_id; 
                 })
+            return handleLoginId(loginId)
         } catch (err) {
-            console.error(err);
+            handleGetError(err)
         }
     }
 
-    // WORK ON THIS LATER
-    // Gets shopping cart of corresponding login_id
-    // and set totalPrice and dynamicShoppingCart
-    // Parameters: token: {jwt_token: current_token}
-    // Return: none
-    async function getShoppingCart(token) {
-        var shoppingCart = []
-        // var totalPrice = 0;
-        var inputCart = [];
-        if (!token.jwt_token) {
-            if (localStorage.getItem("shoppingCart")) {
-                shoppingCart = JSON.parse(localStorage.getItem("shoppingCart"))
-            } else {
-                shoppingCart = [];
-                localStorage.setItem("shoppingCart", JSON.stringify([]));
-            }
-        } else {
-        await account.getShoppingCart(token)
-            // response: {data: list of {food_id, food_name, category, price, delivered_by, is_set_menu, amount}}
+    function handleLoginId(loginId) {
+        if (loginId !== "") {
+            return loginId;      
+        }
+    }
+
+    function handleGetError(error) {
+        console.error(error)
+    }
+
+    async function getShoppingCartList() {
+        getAndSetShoppingCartListFromServer()
             .then(response => {
-                inputCart = response.data
+                const shoppingCart = response.data
+                adjustDynamicShoppingCart(shoppingCart);
+                return shoppingCart;
+                }
+            )
+        
+    }
+
+    async function getAndSetShoppingCartListFromServer() {
+        var shoppingCart;
+        if (!token) {
+            shoppingCart = getShoppingCartFromLocalStorage()
+        } else {
+        console.log("test")
+        await AccountDataService.getShoppingCartFromToken(token)
+            .then(response => {
+                shoppingCart = getShoppingCartFromDatabaseResponse(response)
             })
         }
-        for (let index = 0; index < inputCart.length; ++index) {
-            for (let amount = 0; amount < inputCart[index].amount; ++amount) {
+        setShoppingCartList(shoppingCart);
+        return shoppingCart
+    }
+
+    function getShoppingCartFromLocalStorage() {
+        var shoppingCart;
+        if (localStorage.getItem("shoppingCart")) {
+            shoppingCart = returnLocalStorageShoppingCart()
+        } else {
+            shoppingCart = setAndReturnEmptyLocalStorageShoppingCart()
+        }
+        return shoppingCart;
+    }
+
+    function returnLocalStorageShoppingCart() {
+        var shoppingCart = JSON.parse(localStorage.getItem("shoppingCart"))
+        return shoppingCart
+    }
+
+    function setAndReturnEmptyLocalStorageShoppingCart() {
+        var shoppingCart = [];
+        localStorage.setItem("shoppingCart", JSON.stringify([]));
+        return shoppingCart
+    }
+
+    function getShoppingCartFromDatabaseResponse(response) {
+        const inputCart = response.data
+        console.log(response.data)
+        const shoppingCart = getShoppingCartListFromInputCart(inputCart)
+        return shoppingCart;
+    }
+
+    function getShoppingCartListFromInputCart(inputCart) {
+        const shoppingCart = []
+        for (let currentFoodIndex = 0; currentFoodIndex < inputCart.length; ++currentFoodIndex) {
+            for (let amount = 0; amount < inputCart[currentFoodIndex].amount; ++amount) {
                 shoppingCart
                     .push(
-                        {food_id: inputCart[index].food_id, food_name: inputCart[index],
-                            category: inputCart[index].category, price: inputCart[index].price,
-                            delivered_by: inputCart[index].delivered_by, is_set_menu: inputCart[index].is_set_menu
+                        {food_id: inputCart[currentFoodIndex].food_id, food_name: inputCart[currentFoodIndex],
+                            category: inputCart[currentFoodIndex].category, price: inputCart[currentFoodIndex].price,
+                                delivered_by: inputCart[currentFoodIndex].delivered_by, 
+                                    is_set_menu: inputCart[currentFoodIndex].is_set_menu
                     })
             }
-            // totalPrice += inputCart[index].price * inputCart[index].amount;
         }
-        // setTotalPrice(totalPrice);
-        setShoppingCartList(shoppingCart);
-        adjustDynamicShoppingCart(shoppingCart);
+        return shoppingCart;
     }
 
-    // Add Food to Shopping Cart and update shoppingCart
-    // and Set totalPrice and shoppingCartList to updated values
-    // Paremeters: inputFood: food object, token: {jwt_token: current token},
-    // totalPrice: current total price before update, shoppingCartList: cart before update
-    // Return: none
-    async function addToShoppingCart(inputFood, token, totalPrice, shoppingCartList) {
-        if (!token.jwt_token) {
-            if (localStorage.getItem("shoppingCart")) {
-                const shoppingCart = JSON.parse(localStorage.getItem("shoppingCart"));
-                shoppingCart.push(inputFood);
-                localStorage.setItem("shoppingCart", JSON.stringify(shoppingCart))
-            } else {
-                localStorage.setItem("shoppingCart", JSON.stringify([inputFood]))
-            }
+    async function addToShoppingCart(inputFood) {
+        if (!token) {
+            getShoppingCartFromLocalStorageAndAddFood(inputFood)
         } else {
-            const user = getUserId(token);
-            await account.updateShoppingCart({user: user, food_id: inputFood.food_id, amount: 1}, token)
+            AddFoodToDatabaseShoppingCart(inputFood)
         }
-        const newTotalPrice = totalPrice + inputFood.price;
-        setTotalPrice(newTotalPrice);
-        shoppingCartList.push(inputFood);
-        console.log(shoppingCartList);
-        setShoppingCartList(shoppingCartList);
-        adjustDynamicShoppingCart(shoppingCartList);
+        
+        setNewTotalPriceWithInputFood(inputFood)
+        setShoppingCartListWithInputFood(inputFood)
+        adjustDynamicShoppingCart();
     }
 
-    // Retrieve foods of size 15 from appropriate page
-    // and set foods variable to be a list of food objects
-    // also sets array length to be the length of list
-    // Parameters: current page number
-    // Return: none
+    function getShoppingCartFromLocalStorageAndAddFood(food) {
+        const shoppingCart = getShoppingCartFromLocalStorage()
+        addFoodToLocalStorageShoppingCart(shoppingCart, food)
+    }
+
+    function addFoodToLocalStorageShoppingCart(shoppingCart, food) {
+        for (let count=0; count < amount; ++count) {
+            shoppingCart.push(food)
+        }
+        localStorage.setItem("shoppingCart", JSON.stringify(shoppingCart))
+    }
+
+    async function AddFoodToDatabaseShoppingCart(food) {
+        const login_id = await getUserIdFromToken(token)
+        AccountDataService.updateShoppingCart({login_id: login_id, food_id: food.food_id, amount: amount})
+        
+    }
+
+    async function setNewTotalPriceWithInputFood(inputFood) {
+        const newTotalPrice = totalPrice + inputFood.price * amount;
+        setTotalPrice(newTotalPrice);
+    }
+
+    async function setShoppingCartListWithInputFood(inputFood) {
+        for (let count=0; count < amount; ++count) {
+            shoppingCartList.push(inputFood);
+        }
+        setShoppingCartList(shoppingCartList);
+    }
+
     async function retrieveFoods() {
         FoodDataService.getAllFoods()
             .then(response => {
-                console.log(response.data);
-                setFoods(response.data);
-                setArrayLength(response.data.length)
+                setFoodsAndArrayLength(response)
             })
             .catch(e => {
-                console.log(e);
+                handleGetError(e)
             });
     };
+
+    async function setFoodsAndArrayLength(databaseResponse) {
+        setFoods(databaseResponse.data);
+        setArrayLength(databaseResponse.data.length)
+    }
     
-    // Retrive categories from all foods
-    // and set categories to be a list of category strings
-    // Parameters: none
-    // Return: none
     async function retrieveCategories() {
-        FoodDataService.getCategories()
+        FoodDataService.getAllFoodCategories()
             .then(response => {
-                console.log(response.data);
-                console.log([...(new Set(response.data.map(({category})=>category)))])
-                setCategories(["전체 음식"]
-                    .concat([...(new Set(response.data.map(({category})=>category)))]))
+                handleSetCategories(response.data)
             })
             .catch(e => {
-                console.log(e);
+                handleGetError(e)
             });
     };
 
-    
-    // Retrive all delivery services and set deliveryServices
-    // to be list of delivery service object containing name, rating, rated amount of users
-    // Parameters: none
-    // Return: none
-    async function retrieveDeliveryServicesAndRatings() {
-        DeliveryServiceDataService.getAllDeliveryServices()
-            .then(response => {
-                console.log(response.data);
-                setDeliveryServices([["전체 업체"]].concat([...(new Set(response.data.map(({service_name, rating, rated_users})=>[service_name, rating, rated_users])))]));                
-            })
-            .catch(e => {
-                console.log(e);
-            });
-    };
-
-
-    // Filters out food based on category and delivery service selected
-    // Sets foods after appropriate filter
-    // Parameters: inputCategory: string of category, inputDeliveryService: string of delivery service
-    // Return: none
-    function ultimateFilter(inputCategory, inputDeliveryService) {
-        var soupCategory = "찌개";
-        if (inputCategory == "국/찌개") {
-            FoodDataService.filterByCategoryAndDeliveryService(soupCategory, inputDeliveryService)
-                .then(response => {
-                    console.log(response.data);
-                    setFoods(response.data);
-                    setArrayLength(response.data.length)
-                })
-                .catch(e => {
-                    console.log(e);
-                })
-        }
-        else {
-            FoodDataService.filterByCategoryAndDeliveryService(inputCategory, inputDeliveryService)
-                .then(response => {
-                    console.log(response.data);
-                    setFoods(response.data);
-                    setArrayLength(response.data.length)
-                })
-                .catch(e => {
-                    console.log(e);
-                })
-        }
-        
+    async function handleSetCategories(categories) {
+        setCategories(["전체 음식"].concat([...(new Set(categories.map(({category})=>category)))]))
     }
 
-    // Sets the category to searchCategory 
-    // (to be displayed to the chosen one) and filters food accordingly
-    // Parameters: e: {target: {value: chosen category from dropdown}}
-    // Return: none
+    
+    async function retrieveDeliveryServicesAndRatings() {
+        DeliveryServiceDataService.getAllDeliveryServiceRatings()
+            .then(response => {
+                handleSetDeliveryServices(response.data)
+            })
+            .catch(e => {
+                handleGetError(e)
+            });
+    };
+
+    function handleSetDeliveryServices(deliveryServices) {
+        setDeliveryServices([["전체 업체"]]
+            .concat([...(new Set(deliveryServices
+                .map(({service_name, rating, rated_users})=>[service_name, rating, rated_users])))]));
+    }
+
+    async function filterByCategoryAndDeliveryService(inputCategory, inputDeliveryService) {
+        if (inputCategory === "국/찌개") {
+            inputCategory = "찌개"
+        }
+        
+        FoodDataService.getFoodByCategoryAndDeliveryService(inputCategory, inputDeliveryService)
+            .then(response => {
+                setFoodsAndArrayLength(response)
+            })
+            .catch(e => {
+                handleGetError(e)
+            })
+    }
+
     function onChangeSearchCategory(e) {
         const searchCategory = e.target.value;
         setSearchCategory(searchCategory);
-        console.log(searchCategory);
-        ultimateFilter(searchCategory, searchDeliveryService);
+        filterByCategoryAndDeliveryService(searchCategory, searchDeliveryService);
     }
 
-    // Sets the delivery service to searchDeliveryService 
-    // (to be displayed to the chosen one) and filters food accordingly
-    // Parameters: e: {target: {value: chosen delivery service from dropdown}}
-    // Return: none
     function onChangeSearchDeliveryService(e) {
         const searchDeliveryService = e.target.value;
         setSearchDeliveryService(searchDeliveryService);
-        ultimateFilter(searchCategory, searchDeliveryService);
+        filterByCategoryAndDeliveryService(searchCategory, searchDeliveryService);
     }
 
     
-    // Converts shopping cart list to dynamic shopping cart
-    // and sets dynamicShoppingCart = {food_index: {Food Object, amount}}
-    // Parameters: shoppingCartList: list of {food_id, food_name, category, price, delivered_by, is_set_menu}
-    // Return: none
-    async function adjustDynamicShoppingCart(shoppingCartList) {
-        const inputShoppingCart = {};
-        var totalPrice = 0;
-        for (let index = 0; index < shoppingCartList.length; index++) {
-            if (shoppingCartList[index].food_id in inputShoppingCart) {
-                inputShoppingCart[shoppingCartList[index].food_id].Amount++;
-            }
-            else {
-                inputShoppingCart[shoppingCartList[index].food_id] = 
-                {Food: shoppingCartList[index], Amount: 1}
-            }
-            totalPrice += shoppingCartList[index].price;
-        }
-
-        console.log(inputShoppingCart);
+    async function adjustDynamicShoppingCart() {
+        const { dynamicShoppingCart } = await getDynamicShoppingCartList()
         
-        setTotalPrice(totalPrice);
-        setDynamicShoppingCart(inputShoppingCart);
+        setDynamicShoppingCart(dynamicShoppingCart);
     }
 
-    // Return subtotals of each delivery service
-    // Parameters: inputDictionary: {food_index: {Food Object, amount}}
-    // Return: all div of delivery_service.delivered_by: $total of that delivery service
-    function eachDeliveryTotal(inputDictionary) {
-        const totalDictionary = {};
-        if (inputDictionary.length == 0) {
+    async function getDynamicShoppingCartList() {
+        const dynamicShoppingCart = {};
+        for (let foodIndex = 0; foodIndex < shoppingCartList.length; foodIndex++) {
+            if (shoppingCartList[foodIndex].food_id in dynamicShoppingCart) {
+                dynamicShoppingCart[shoppingCartList[foodIndex].food_id].Amount++;
+            }
+            else {
+                dynamicShoppingCart[shoppingCartList[foodIndex].food_id] = 
+                {Food: shoppingCartList[foodIndex], Amount: 1}
+            }
+        }
+        return dynamicShoppingCart
+    }
+
+    function getTotalCost() {
+        var totalPrice = 0;
+        for (let foodIndex = 0; foodIndex < shoppingCartList.length; foodIndex++) {
+            totalPrice += shoppingCartList[foodIndex].price;
+        }
+        return totalPrice
+    }
+
+    function eachDeliveryTotal() {
+        const eachDeliveryTotalDictionary = getEachDeliveryTotalDictionary()
+        return getDivFromEachDeliveryTotalDictionary(eachDeliveryTotalDictionary)
+    }
+
+    function getEachDeliveryTotalDictionary() {
+        const eachDeliveryTotalDictionary = {};
+
+        for (var key in dynamicShoppingCart) {
+            if (dynamicShoppingCart[key].Food.delivered_by in eachDeliveryTotalDictionary) {
+                eachDeliveryTotalDictionary[dynamicShoppingCart[key].Food.delivered_by] 
+                += dynamicShoppingCart[key].Food.price * dynamicShoppingCart[key].Amount
+            } else {
+                eachDeliveryTotalDictionary[dynamicShoppingCart[key].Food.delivered_by]
+                    = dynamicShoppingCart[key].Food.price * dynamicShoppingCart[key].Amount;
+            }
+        }
+
+        return eachDeliveryTotalDictionary;
+    }
+
+    function getDivFromEachDeliveryTotalDictionary(eachDeliveryTotalDictionary) {
+        if (eachDeliveryTotalDictionary.length === 0) {
             return (
                 <div></div>
             )
         }
-        for (var key in inputDictionary) {
-            if (inputDictionary[key].Food.delivered_by in totalDictionary) {
-                totalDictionary[inputDictionary[key].Food.delivered_by] 
-                += inputDictionary[key].Food.price * inputDictionary[key].Amount
-            } else {
-                totalDictionary[inputDictionary[key].Food.delivered_by] = inputDictionary[key].Food.price 
-                * inputDictionary[key].Amount;
-            }
-        }
-        const totalList = [];
-        for (var deliveryService in totalDictionary) {
-            totalList.push(
-                <div className="div-inline">{deliveryService}: ${totalDictionary[deliveryService]}</div>
+
+        const eachDeliveryTotalList = [];
+        for (var deliveryService in eachDeliveryTotalDictionary) {
+            eachDeliveryTotalList.push(
+                <div className="div-inline">{deliveryService}: ${eachDeliveryTotalDictionary[deliveryService]}</div>
             )
         }
-        return totalList.map((service) => {
+
+        return eachDeliveryTotalList.map((service) => {
             return (
                 service
             )
         })
     }
 
-    // Makes a pagination based on the length of the input given
-    // Parameters: inputLength (length of foods)
-    // Return: Pagination <이전>, pages, <다음>
     function setPagination(inputLength) {
+        const paginationLength = getPaginationLength(inputLength)
+        return getPaginationHTML(paginationLength)        
+    }
+
+    function getPaginationLength(length) {
         let paginationLength;
-        const paginationList = [];
-        if (inputLength % 15 == 0) {
-            paginationLength = Math.floor(inputLength / 15);
+        if (length % 15 === 0) {
+            paginationLength = Math.floor(length / 15);
         }
         else {
-            paginationLength = Math.floor(inputLength / 15) + 1;
+            paginationLength = Math.floor(length / 15) + 1;
         }
+        return paginationLength;
+    }
+
+    function getPaginationHTML(length) {
+        const paginationList = generatePaginationHTMLList(length)
+        return paginationList.map((page) => {
+            return (
+                page
+            )
+        });
+    }
+
+    function generatePaginationHTMLList(length) {
+        const paginationList = []
         paginationList.push(
             <Pagination.Item>
                 이전
             </Pagination.Item>
         )
-        for (let index = 0; index < paginationLength; paginationLength++) {
+        for (let index = 0; index < length; length++) {
             paginationList.push(
-                <Pagination.Item active={index == 0}>
+                <Pagination.Item active={index === 0}>
                     {index + 1}
                 </Pagination.Item>
             )
@@ -318,20 +400,12 @@ function HomePage() {
                 다음
             </Pagination.Item>
         )
-        return paginationList.map((page) => {
-            return (
-                page
-            )
-        });
+        return paginationList
     }
-
-
 
     return (
 
         <div className="HomePage">
-
-            
             <Alert><h3>(주의) 업체마다 배달 규정이 다름:</h3>
 
             <Button
@@ -340,8 +414,6 @@ function HomePage() {
                 aria-expanded={open}
             >
             배달 규정 보기</Button>
-                
-            
 
             <Collapse in={open}>
                     <h6 id="delivery-text">
@@ -351,17 +423,11 @@ function HomePage() {
             
             </Alert>
 
-            
-
-            
-
-
             배달 업체가 마음에 들거나 마음에 들지 않았나요? 그렇다면 <strong><a href="/ratedelivery">리뷰를 작성해주세요</a></strong>!
             <br></br>
 
             배달비가 너무 많이 나오세요? 그렇다면 멤버십에 가입하고 배달비를 모두 면제 받으세요!
-            
-            
+
             <div className="p-2">
 
             업체 고르기:
@@ -369,7 +435,7 @@ function HomePage() {
             <div className="div-inline" style={{width: '300px'}}>
                 <Form.Select onChange={onChangeSearchDeliveryService}>
                     {deliveryServices.map(deliveryService => {
-                        if (deliveryService[0] == "전체 업체") {
+                        if (deliveryService[0] === "전체 업체") {
                             return (
                                 <option value={deliveryService}> {deliveryService} </option>
                             )
@@ -402,14 +468,17 @@ function HomePage() {
             <Pagination>
             </Pagination>
             
-            
+            <Button href="/purchase" className="btn btn-warning">바로 구매하기</Button>
+            <Button href="/shoppingcart" className="btn btn-warning">장바구니 보기</Button>
+
+            총 구매: ${totalPrice} {eachDeliveryTotal()}
             </div>
             <div>
                 {foods.map((food) => {
                     return (
                         <div className="div-inline">
-                        <Card style={{ width: '18rem' }}>
-                            <Card.Img variant="top" src="holder.js/100px180" />
+                        <Card style={{ width: '18rem'}}>
+                            <Card.Img style={{ height: '15rem' }} variant="top" src={food.picture_url} />
                             <Card.Body>
                                     <Card.Title>
                                         {food.food_name}
@@ -425,7 +494,14 @@ function HomePage() {
                                     <Link to={`/foods/${food.food_id}`}>
                                         상세보기
                                     </Link>&nbsp;&nbsp;&nbsp;
-                                <Button onClick={() => addToShoppingCart(food, {jwt_token: token}, totalPrice, shoppingCartList)} className="btn btn-primary btn-sm">장바구니에 담기</Button>
+                                    <OverlayTrigger
+                                        trigger="click"
+                                        placement="right"
+                                        overlay={getPopover(food)}
+                                        rootClose={true}
+                                    >
+                                        <Link>장바구니에 담기</Link>
+                                    </OverlayTrigger>
                             </Card.Body>
                         </Card>
                         </div>
@@ -435,17 +511,10 @@ function HomePage() {
 
             {/* {setPagination(arrayLength)} */}
 
-
-            <Button href="/purchase" className="btn btn-warning">바로 구매하기</Button>
-            <Button href="/shoppingcart" className="btn btn-warning">장바구니 보기</Button>
-            
-
-            총 구매: ${totalPrice} {eachDeliveryTotal(dynamicShoppingCart)}
             
             
         </div>
     )
 };
-
 
 export default HomePage;

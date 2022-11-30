@@ -19,6 +19,7 @@ function handleServerError(error, serverResponse) {
 }
 
 async function getShoppingCart(loginId, serverResponse) {
+    console.log(loginId)
     const shoppingCart = await pool.query(
         `
         SELECT foods.*, shopping_cart.login_id AS login_id, shopping_cart.amount AS amount FROM foods
@@ -30,9 +31,10 @@ async function getShoppingCart(loginId, serverResponse) {
     serverResponse.json(shoppingCart.rows)
 }
 
-function returnShoppingCart(serverRequest, serverResponse) {
+async function returnShoppingCart(serverRequest, serverResponse) {
     const { user } = serverRequest;
-    const loginId = getLoginIdFromAccountId(user)
+    console.log(user)
+    const loginId = await getLoginIdFromAccountId(user)
     getShoppingCart(loginId, serverResponse)
 }
 
@@ -48,21 +50,15 @@ async function updateShoppingCart(serverRequest, serverResponse) {
 }
 
 function setShoppingCartRoutesAPI() {
-    // Gets shopping cart of the appropriate user
-    // Parameters: req: {jwt_token: token}
-    // Return: shopping cart food object list and the login_id
     shoppingCartRoutes.post("/getshoppingcart", authorization, async (req, res) => {
         try {
+            console.log("hi")
             returnShoppingCart(req, res)       
         } catch (err) {
             handleServerError(err, res)
         }
     })
 
-    // NEEDS MODIFICATION
-    // Updates and gets shopping cart of the appropriate user
-    // Parameters: req: {user: login_id, food_id: food_id, amount: added amount}
-    // Return: none
     shoppingCartRoutes.post("/updateshoppingcart", async (req, res) => {
         try {
             updateShoppingCart(req, res)

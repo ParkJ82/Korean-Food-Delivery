@@ -13,14 +13,17 @@ function Purchase () {
     const [checkedSaveCard, setCheckedSaveCard] = useState(true);
 
 
-    const handleSubmit = (event) => {
+    function handleSubmit(event) {
+        handleCheckValidity(event)
+        setValidated(true);
+    }
+
+    function handleCheckValidity(event) {
         const form = event.currentTarget;
         if (form.checkValidity() === false) {
             event.preventDefault();
             event.stopPropagation();
         }
-
-        setValidated(true);
     }
 
 

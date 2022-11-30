@@ -4,12 +4,12 @@ import pool from "../foods.js";
 const foodsRoutes = express.Router();
 
 async function filterByNoFilter() {
-    filteredFood = await pool.query("SELECT * FROM foods");
+    const filteredFood = await pool.query("SELECT * FROM foods");
     return filteredFood
 }
 
 async function filterByCategory(category) {
-    filteredFood = await pool.query(
+    const filteredFood = await pool.query(
         "SELECT * FROM foods WHERE category = $1",
         [category]
     )
@@ -17,7 +17,7 @@ async function filterByCategory(category) {
 }
 
 async function filterByDeliveryService(deliveryService) {
-    filteredFood = await pool.query(
+    const filteredFood = await pool.query(
         "SELECT * FROM foods WHERE delivered_by = $1",
         [deliveryService]
     )
@@ -33,14 +33,14 @@ async function handleFoodFilters(serverRequest, serverResponse) {
     const { deliveryservice, category} = serverRequest.params;
     var filteredFood;
     if (deliveryservice == "전체 업체" && category == "전체 음식") {
-        filteredFood = filterByNoFilter()
+        filteredFood = await filterByNoFilter()
     } 
     else if (deliveryservice == "전체 업체") {
-        filteredFood = filterByCategory(category)
+        filteredFood = await filterByCategory(category)
     
     }
     else if (category == "전체 음식") {
-        filteredFood = filterByDeliveryService(deliveryservice)
+        filteredFood = await filterByDeliveryService(deliveryservice)
     
     } 
     else {
@@ -50,6 +50,8 @@ async function handleFoodFilters(serverRequest, serverResponse) {
         )
     
     }
+
+    console.log(filteredFood.rows)
     serverResponse.json(filteredFood.rows);
 }
 
@@ -95,6 +97,7 @@ function setFoodRouteAPI() {
         }
     });
 
+    
     // Get all foods as awhole
     // Parameters: none
     // Return: all foods
@@ -140,6 +143,25 @@ function setFoodRouteAPI() {
             console.error(err.message);
         }
     })
+
+    foodsRoutes.post("/updateimage", async (req, res) => {
+        try {
+            const { food_name, picture_url } = req.body;
+            const foodWithImage = await pool.query(
+              `
+              UPDATE foods 
+                SET picture_url = $1
+                    WHERE food_name = $2
+                        RETURNING *;
+              `,
+              [picture_url, food_name]
+            )
+            res.json(foodWithImage.rows[0])
+        } catch (err) {
+            console.error(err.message)
+        }
+    })
+
 
     // POTENTIALLY UNUSED
     //

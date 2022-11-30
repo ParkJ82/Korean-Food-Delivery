@@ -59,7 +59,7 @@ function processNewAccount(serverRequest, serverResponse) {
     createNewAccount(accountInfo, serverResponse);
 
     const token = jwtGenerator(newUser.rows[0].account_id);
-    res.json({ token })
+    res.json({ token: token })
 }
 
 async function createNewAccount(accountInfo, res) {
@@ -101,18 +101,18 @@ async function returnNameFromAccountId(serverRequest, serverResponse) {
 }
 
 
-function processLogin(serverRequest, serverResponse) {
+async function processLogin(serverRequest, serverResponse) {
     const loginInformation = serverRequest.body;
 
     if (!checkIfLoginIdExists(loginInformation.id)) {
         return serverResponse.status(401).json("Incorrect credentials");
     }
 
-    if (checkIfPasswordIsCorrect(loginInformation)) {
+    if (!checkIfPasswordIsCorrect(loginInformation)) {
         return serverResponse.status(401).json("Incorrect credentials")
     }
-
-    returnToken(loginInformation.id, serverResponse)
+    const token = await returnToken(loginInformation.id, serverResponse)
+    serverResponse.json({token: token})
 }
 
 async function checkIfLoginIdExists(loginId) {
@@ -125,25 +125,35 @@ async function checkIfLoginIdExists(loginId) {
     }
 }
 
-function returnToken(loginId, res) {
-    const user = pool.query("SELECT account_id FROM accounts WHERE login_id = $1", 
+async function returnToken(loginId) {
+    try {
+        const user = await pool.query("SELECT account_id FROM accounts WHERE login_id = $1", 
         [loginId]);
-    const token = jwtGenerator(user.rows[0].account_id);
-    res.json({token: token});
+        const token = jwtGenerator(user.rows[0].account_id);
+        return token;
+    } catch (err) {
+        console.log("failed to catched error")
+    }
+    
 }
 
 async function checkIfPasswordIsCorrect(loginInformation) {
-    const { id, password } = loginInformation;
-    const user = pool.query("SELECT login_password FROM accounts WHERE login_id = $1", 
-        [id])
-    const validPassword = await bcrypt.compare(
-        password, user.rows[0].login_password
-    );
-    if (validPassword) {
-        return true
-    } else {
-        return false
+    try {
+        const { id, password } = loginInformation;
+        const user = await pool.query("SELECT login_password FROM accounts WHERE login_id = $1", 
+            [id])
+        const validPassword = await bcrypt.compare(
+            password, user.rows[0].login_password
+        );
+        if (validPassword) {
+            return true
+        } else {
+            return false
+        }
+    } catch (err) {
+        console.log("incorrect password!!!")
     }
+    
 }
 
 setAccountRoutesAPI()

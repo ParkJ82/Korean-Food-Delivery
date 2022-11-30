@@ -18,39 +18,59 @@ function CreateAccountWebsite() {
         phonenumber: "",
         kakaoid: ""
     };
-
-
     const [validated, setValidated] = useState(false);
     const [newUser, setNewUser] = useState(initialNewUserState);
 
 
-    const handleInputChange = event => {
-        const { name, value } = event.target;
+    function handleInputChange(input) {
+        const { name, value } = input.target;
         setNewUser({ ...newUser, [name]: value });
     };
 
-    const handleSubmit = (event) => {
-        const form = event.currentTarget;
-        if (form.checkValidity() === false) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
-
+    function handleSubmit(input) {
         try {
-            AccountDataService.createNewAccount(newUser)
-                .then(response => {
-                    if (response.token) {
-                        localStorage.setItem("token", response.token);
-                        toast.success("Registered Successfully");
-                    } else {
-                        toast.error(response);
-                    }
-                })
+            if (checkAndHandleValidity(input)) {
+                createNewAccountAndGetToken()
+            }
         } catch (err) {
-            console.error(err.message);
+            handleSubmitError(err)
         }
     }
 
+    function checkAndHandleValidity(input) {
+        const form = input.currentTarget;
+        if (form.checkValidity() === false) {
+            input.preventDefault();
+            input.stopPropagation();
+            return false
+        }
+        return true
+    }
+
+    function createNewAccountAndGetToken() {
+        AccountDataService.createNewAccountAndGetToken(newUser)
+            .then(response => {
+                if (response.token) {
+                    setToken(response.token)
+                } else {
+                    handleNewAccountError(response)
+                }
+            })
+    }
+
+    function setToken(token) {
+        localStorage.setItem("token", token);
+        toast.success("Registered Successfully");
+    }
+
+    function handleNewAccountError(inputMessage) {
+        toast.error(inputMessage)
+    }
+
+
+    function handleSubmitError(error) {
+        console.error(error.message)
+    }
 
     return (
         <div>
@@ -148,7 +168,5 @@ function CreateAccountWebsite() {
         </div>
     );
 }
-
-
 
 export default CreateAccountWebsite;

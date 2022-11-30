@@ -44,7 +44,7 @@ async function getDeliveryServiceWithRatings(serverResponse) {
     const ratings = await pool.query(
         `
         SELECT delivery_services.service_name AS service_name,
-            ROUND(AVG(ratings.rating)::numeric, 2) as rating, COUNT(*) AS rated_users
+            ROUND(AVG(ratings.rating)::numeric, 1) as rating, COUNT(*) AS rated_users
                 FROM ratings
                     JOIN delivery_services
                         ON delivery_services.service_id = ratings.service_id
@@ -76,7 +76,7 @@ function setRatingRoutesAPI() {
     // Return: all ratings with corresponding service name
     ratingsRoutes.get("/getratings", async (req, res) => {
         try {
-            getDeliveryServiceWithRatings(serverResponse)
+            getDeliveryServiceWithRatings(res)
         } catch (err) {
             handleServerError(err, res)
         }
