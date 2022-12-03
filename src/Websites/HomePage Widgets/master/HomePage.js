@@ -8,11 +8,14 @@ import { Link } from "react-router-dom";
 import Form from "react-bootstrap/Form";
 import Card from "react-bootstrap/Card";
 import Pagination from "react-bootstrap/Pagination";
-import Collapse from "react-bootstrap/Collapse";
 import AccountDataService from "../../../services/account";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Popover from "react-bootstrap/Popover";
-
+import Modal from "react-bootstrap/Modal";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
+import Container from "react-bootstrap/Container"
+import "../../components/CustomColors.css";
 
 function HomePage() {
     const [foods, setFoods] = useState([]);
@@ -25,10 +28,11 @@ function HomePage() {
     const [shoppingCartList, setShoppingCartList] = useState([]);
     const foodAmounts = [1, 2, 3, 4, 5]
 
-    const token = localStorage.getItem("token") ? localStorage.getItem("token") : null
-    const [ amount, setAmount ] = useState(1)
+    const token = sessionStorage.getItem("token") ? sessionStorage.getItem("token") : null
+    const [amount, setAmount] = useState(1)
     const [arrayLength, setArrayLength] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
+    const [popoverOpen, setPopoverOpen] = useState(sessionStorage.getItem("false") ? false : true)
 
     // Controls Collapse onClick
     const [open, setOpen] = useState(false);
@@ -42,9 +46,20 @@ function HomePage() {
     }, [])
 
     useEffect(() => {
-        const currentTotalCost = getTotalCost()
-        setTotalPrice(currentTotalCost)
+        async function handleDynamicShoppingCart() {
+            const dynamicShoppingCart = await getDynamicShoppingCartList()
+            const currentTotalCost = getTotalCost()
+            setTotalPrice(currentTotalCost)
+            setDynamicShoppingCart(dynamicShoppingCart)
+        }
+        handleDynamicShoppingCart()
+        
     }, [shoppingCartList])
+
+    function handleClose() {
+        sessionStorage.setItem("false", "안녕하세요~ :)")
+        setPopoverOpen(false)
+    }
 
     function getPopover(food) {
         return (
@@ -117,7 +132,6 @@ function HomePage() {
         if (!token) {
             shoppingCart = getShoppingCartFromLocalStorage()
         } else {
-        console.log("test")
         await AccountDataService.getShoppingCartFromToken(token)
             .then(response => {
                 shoppingCart = getShoppingCartFromDatabaseResponse(response)
@@ -129,7 +143,7 @@ function HomePage() {
 
     function getShoppingCartFromLocalStorage() {
         var shoppingCart;
-        if (localStorage.getItem("shoppingCart")) {
+        if (sessionStorage.getItem("shoppingCart")) {
             shoppingCart = returnLocalStorageShoppingCart()
         } else {
             shoppingCart = setAndReturnEmptyLocalStorageShoppingCart()
@@ -138,19 +152,18 @@ function HomePage() {
     }
 
     function returnLocalStorageShoppingCart() {
-        var shoppingCart = JSON.parse(localStorage.getItem("shoppingCart"))
+        var shoppingCart = JSON.parse(sessionStorage.getItem("shoppingCart"))
         return shoppingCart
     }
 
     function setAndReturnEmptyLocalStorageShoppingCart() {
         var shoppingCart = [];
-        localStorage.setItem("shoppingCart", JSON.stringify([]));
+        sessionStorage.setItem("shoppingCart", JSON.stringify([]));
         return shoppingCart
     }
 
     function getShoppingCartFromDatabaseResponse(response) {
         const inputCart = response.data
-        console.log(response.data)
         const shoppingCart = getShoppingCartListFromInputCart(inputCart)
         return shoppingCart;
     }
@@ -192,7 +205,7 @@ function HomePage() {
         for (let count=0; count < amount; ++count) {
             shoppingCart.push(food)
         }
-        localStorage.setItem("shoppingCart", JSON.stringify(shoppingCart))
+        sessionStorage.setItem("shoppingCart", JSON.stringify(shoppingCart))
     }
 
     async function AddFoodToDatabaseShoppingCart(food) {
@@ -256,15 +269,13 @@ function HomePage() {
     function handleSetDeliveryServices(deliveryServices) {
         setDeliveryServices([["전체 업체"]]
             .concat([...(new Set(deliveryServices
-                .map(({service_name, rating, rated_users})=>[service_name, rating, rated_users])))]));
+                .map(({service_name, rating, rated_users, delivery_minimum})=>
+                        [service_name, rating, rated_users, delivery_minimum])))]));
     }
 
-    async function filterByCategoryAndDeliveryService(inputCategory, inputDeliveryService) {
-        if (inputCategory === "국/찌개") {
-            inputCategory = "찌개"
-        }
+    async function filterByCategoryAndDeliveryService(categoryList, inputDeliveryService) {
         
-        FoodDataService.getFoodByCategoryAndDeliveryService(inputCategory, inputDeliveryService)
+        FoodDataService.getFoodByCategoryAndDeliveryService(categoryList, inputDeliveryService)
             .then(response => {
                 setFoodsAndArrayLength(response)
             })
@@ -273,38 +284,84 @@ function HomePage() {
             })
     }
 
-    function onChangeSearchCategory(e) {
-        const searchCategory = e.target.value;
-        setSearchCategory(searchCategory);
-        filterByCategoryAndDeliveryService(searchCategory, searchDeliveryService);
+    function onClickAllFoods(e) {
+        let checkboxes = document.getElementsByClassName("foods form-check")
+        for (let index = 0; index < checkboxes.length; ++index) {
+            checkboxes[index].firstChild.checked = e.target.checked;
+        }
+        if (e.target.checked) {
+            retrieveFoods();
+        } else {
+            setFoods([])
+        }
+        console.log(foods)
     }
 
-    function onChangeSearchDeliveryService(e) {
-        const searchDeliveryService = e.target.value;
+    function onClickSearchCategory(e) {
+        const searchCategory = e.target.label;
+        let totalCheckBox = document.getElementsByClassName("total form-check")
+        let checkboxes = document.getElementsByClassName("foods form-check")
+        console.log(checkboxes)
+        let allChecked = true;
+        let allNotChecked = true;
+        const categoryList = []
+
+        if (e.target.checked === false) {
+            totalCheckBox[0].firstChild.checked = false;
+        } 
+        for (let index = 0; index < checkboxes.length; ++index) {
+            if (checkboxes[index].firstChild.checked === false) {
+                allChecked = false;
+            } else {
+                categoryList.push(checkboxes[index].innerText)
+                allNotChecked = false;
+            }
+        }
+        if (allChecked) {
+            totalCheckBox[0].firstChild.checked = true;
+        }
+        if (allNotChecked) {
+            setFoods([])
+        }
+        filterByCategoryAndDeliveryService(categoryList, searchDeliveryService)
+    }
+
+    function onClickSearchDeliveryService(e) {
+        const searchDeliveryService = e.target.id;
+        console.log(searchCategory)
+        let categoryList = [];
+        if (searchCategory === "전체 음식") {
+            let checkboxes = document.getElementsByClassName("foods form-check");
+            for (let index = 0; index < checkboxes.length; ++index) {
+                categoryList.push(checkboxes[index].innerText);
+            }
+        }
+        console.log(categoryList)
         setSearchDeliveryService(searchDeliveryService);
-        filterByCategoryAndDeliveryService(searchCategory, searchDeliveryService);
+        filterByCategoryAndDeliveryService(categoryList, searchDeliveryService);
     }
 
     
     async function adjustDynamicShoppingCart() {
-        const { dynamicShoppingCart } = await getDynamicShoppingCartList()
-        
+        const dynamicShoppingCart = await getDynamicShoppingCartList()
         setDynamicShoppingCart(dynamicShoppingCart);
     }
 
     async function getDynamicShoppingCartList() {
-        const dynamicShoppingCart = {};
+        const outputDynamicShoppingCart = {};
         for (let foodIndex = 0; foodIndex < shoppingCartList.length; foodIndex++) {
-            if (shoppingCartList[foodIndex].food_id in dynamicShoppingCart) {
-                dynamicShoppingCart[shoppingCartList[foodIndex].food_id].Amount++;
+            if (shoppingCartList[foodIndex].food_id in outputDynamicShoppingCart) {
+                outputDynamicShoppingCart[shoppingCartList[foodIndex].food_id].Amount++;
             }
             else {
-                dynamicShoppingCart[shoppingCartList[foodIndex].food_id] = 
+                outputDynamicShoppingCart[shoppingCartList[foodIndex].food_id] = 
                 {Food: shoppingCartList[foodIndex], Amount: 1}
             }
         }
-        return dynamicShoppingCart
+        return outputDynamicShoppingCart
     }
+
+
 
     function getTotalCost() {
         var totalPrice = 0;
@@ -324,28 +381,42 @@ function HomePage() {
 
         for (var key in dynamicShoppingCart) {
             if (dynamicShoppingCart[key].Food.delivered_by in eachDeliveryTotalDictionary) {
-                eachDeliveryTotalDictionary[dynamicShoppingCart[key].Food.delivered_by] 
+                eachDeliveryTotalDictionary[dynamicShoppingCart[key].Food.delivered_by][0] 
                 += dynamicShoppingCart[key].Food.price * dynamicShoppingCart[key].Amount
             } else {
+                const minimumPrice = getCorrespondingMinimumPrice(dynamicShoppingCart[key].Food.delivered_by)
                 eachDeliveryTotalDictionary[dynamicShoppingCart[key].Food.delivered_by]
-                    = dynamicShoppingCart[key].Food.price * dynamicShoppingCart[key].Amount;
+                    = [dynamicShoppingCart[key].Food.price * dynamicShoppingCart[key].Amount, minimumPrice];
             }
         }
+
+        
 
         return eachDeliveryTotalDictionary;
     }
 
+    function getCorrespondingMinimumPrice(inputService) {
+        for (let index=0; index < deliveryServices.length; ++index) {
+            if (inputService === deliveryServices[index][0]) {
+                return deliveryServices[index][3]
+            }
+        }
+    }
+
     function getDivFromEachDeliveryTotalDictionary(eachDeliveryTotalDictionary) {
-        if (eachDeliveryTotalDictionary.length === 0) {
+        if (Object.keys(eachDeliveryTotalDictionary).length === 0) {
             return (
-                <div></div>
+                <div>없음</div>
             )
         }
 
         const eachDeliveryTotalList = [];
         for (var deliveryService in eachDeliveryTotalDictionary) {
             eachDeliveryTotalList.push(
-                <div className="div-inline">{deliveryService}: ${eachDeliveryTotalDictionary[deliveryService]}</div>
+                <div>
+                    {`${deliveryService} 구매액: $${eachDeliveryTotalDictionary[deliveryService][0]} 
+                    (배달 최소비: $${eachDeliveryTotalDictionary[deliveryService][1]})`}
+                </div>
             )
         }
 
@@ -404,112 +475,187 @@ function HomePage() {
     }
 
     return (
-
         <div className="HomePage">
-            <Alert><h3>(주의) 업체마다 배달 규정이 다름:</h3>
+            <Alert><h3>(주의) 업체마다 배달 규정이 다름:
+                구매하기 전에 배달 최소비를 확인하세요!
+            </h3>
 
-            <Button
-                onClick={() => setOpen(!open)}
-                aria-controls="delivery-text"
-                aria-expanded={open}
-            >
-            배달 규정 보기</Button>
+                {/* <Link
+                    onClick={() => setOpen(!open)}
+                    aria-controls="delivery-text"
+                    aria-expanded={open}
+                >
+                배달 규정 펼치기</Link>
 
-            <Collapse in={open}>
+                <Collapse in={open}>
                     <h6 id="delivery-text">
                         오병이어 배달 최소비: $65
                     </h6>
-                </Collapse>
-            
+                </Collapse> */}
+
             </Alert>
+            
 
-            배달 업체가 마음에 들거나 마음에 들지 않았나요? 그렇다면 <strong><a href="/ratedelivery">리뷰를 작성해주세요</a></strong>!
-            <br></br>
+            
+            <Container fluid={true} className="p-0">
+                <Row>
+                    <Col sm={2}>
 
-            배달비가 너무 많이 나오세요? 그렇다면 멤버십에 가입하고 배달비를 모두 면제 받으세요!
-
-            <div className="p-2">
-
-            업체 고르기:
-            &nbsp;&nbsp;
-            <div className="div-inline" style={{width: '300px'}}>
-                <Form.Select onChange={onChangeSearchDeliveryService}>
+                    업체 고르기:
+                    &nbsp;&nbsp;
+                    <div>
                     {deliveryServices.map(deliveryService => {
                         if (deliveryService[0] === "전체 업체") {
                             return (
-                                <option value={deliveryService}> {deliveryService} </option>
+                                <Form.Check
+                                    defaultChecked
+                                    id="전체 업체"
+                                    type="radio"
+                                    name="delivery"
+                                    label="전체 선택하기"
+                                    onClick={onClickSearchDeliveryService}
+                                    >
+
+                                </Form.Check>
                             )
                         } else {
                             return (
-                                <option value={deliveryService[0]}>
-                                    {deliveryService[0]}, 평점: {deliveryService[1]}/5.0 (리뷰 수: {deliveryService[2]})
-                                </option>
+                                <>
+                                    <Form.Check
+                                        type="radio"
+                                        name="delivery"
+                                        id={`${deliveryService[0]}`}
+                                        label={`${deliveryService[0]}, 평점: ${deliveryService[1]}/5.0 
+                                        (리뷰 수: ${deliveryService[2]})`}
+                                        onClick={onClickSearchDeliveryService}
+                                        >
+                                    </Form.Check>
+                                    
+                                </>
+                                
+                                
                             )
+                            
                         }
                         
                     })}
-                </Form.Select>
-            </div>
-            &nbsp;&nbsp;
-            음식 종류 고르기:
-            &nbsp;&nbsp;
-            <div className="div-inline" style={{width: '300px'}}>
-                <Form.Select onChange={onChangeSearchCategory} >
-                    {categories.map(category => {
-                        return (
-                            <option value={category}> {category} </option>
-                            
-                        )
-                    })}
-                </Form.Select>
-            </div>
-            
-            <br></br>
-            <Pagination>
-            </Pagination>
-            
-            <Button href="/purchase" className="btn btn-warning">바로 구매하기</Button>
-            <Button href="/shoppingcart" className="btn btn-warning">장바구니 보기</Button>
+                        
+                    </div>
+                    <br></br>
+                    음식 종류 고르기:
+                    <div>
+                        
+                            {categories.map(category => {
+                                if (category == "전체 음식") {
+                                    return (
+                                    <Form.Check
+                                        defaultChecked
+                                        onClick={onClickAllFoods}
+                                        type="checkbox"
+                                        label="전체 음식"
+                                        className="total"
+                                        />
+                                    )
+                                }
+                                else {
+                                return (
+                                    <Form.Check
+                                        defaultChecked 
+                                        onClick={onClickSearchCategory} 
+                                        type="checkbox"
+                                        label={category}
+                                        className="foods"
+                                        >
+                                    </Form.Check>
+                                )
+                                }
+                            })}
+                        
+                    </div>
+                    <br></br>
 
-            총 구매: ${totalPrice} {eachDeliveryTotal()}
-            </div>
-            <div>
-                {foods.map((food) => {
-                    return (
-                        <div className="div-inline">
-                        <Card style={{ width: '18rem'}}>
-                            <Card.Img style={{ height: '15rem' }} variant="top" src={food.picture_url} />
-                            <Card.Body>
-                                    <Card.Title>
-                                        {food.food_name}
-                                    </Card.Title>
-                                    <Card.Text>
-                                        ${food.price}
-                                    </Card.Text>
+                    업체별 내 구매 내역과 배달 최소비:
+                    <br></br>
+                    <div>
+                    {eachDeliveryTotal()}
+                    </div>
+                    </Col>
+                    <Col sm={10}>
+                        <div>
+                        배달 업체가 마음에 들거나 마음에 들지 않았나요? 그렇다면 <strong><a href="/ratedelivery">리뷰를 작성해주세요</a></strong>!
+                        <br></br>
 
-                                    <Card.Subtitle className="mb-2 text-muted">
-                                        배달업체: {food.delivered_by}
-                                        </Card.Subtitle> 
-                                        
-                                    <Link to={`/foods/${food.food_id}`}>
-                                        상세보기
-                                    </Link>&nbsp;&nbsp;&nbsp;
-                                    <OverlayTrigger
-                                        trigger="click"
-                                        placement="right"
-                                        overlay={getPopover(food)}
-                                        rootClose={true}
-                                    >
-                                        <Link>장바구니에 담기</Link>
-                                    </OverlayTrigger>
-                            </Card.Body>
-                        </Card>
+                        배달비가 너무 많이 나오세요? 그렇다면 멤버십에 가입하고 배달비를 모두 면제 받으세요!
+
+                        
+                        
+                        <br></br>
+                        <Pagination>
+                        </Pagination>
+                        
+                        <Button href="/purchase" className="btn btn-warning">바로 구매하기</Button>
+                        <Button href="/shoppingcart" className="btn btn-warning">장바구니 보기</Button>
+
+
+                        총 구매: ${totalPrice}
+                        <br></br>
+                        {foods.length === 0 ?
+                        <div>검색 결과가 없습니다</div> :
+                            foods.map((food) => {
+                                return (
+                                    <div className="div-inline">
+                                    <Card style={{ width: '18rem'}}>
+                                        <Card.Img style={{ height: '15rem' }} variant="top" src={food.picture_url} />
+                                        <Card.Body>
+                                                <Card.Title>
+                                                    {food.food_name}
+                                                </Card.Title>
+                                                <Card.Text>
+                                                    ${food.price}
+                                                </Card.Text>
+
+                                                <Card.Subtitle className="mb-2 text-muted">
+                                                    배달업체: {food.delivered_by}
+                                                    </Card.Subtitle> 
+                                                    
+                                                <Link to={`/foods/${food.food_id}`}>
+                                                    상세보기
+                                                </Link>&nbsp;&nbsp;&nbsp;
+                                                <OverlayTrigger
+                                                    trigger="click"
+                                                    placement="right"
+                                                    overlay={getPopover(food)}
+                                                    rootClose={true}
+                                                >
+                                                    <Link>장바구니에 담기</Link>
+                                                </OverlayTrigger>
+                                        </Card.Body>
+                                    </Card>
+                                    </div>
+                                )
+                            })
+                            }
                         </div>
-                    )
-                })}
-            </div>
-
+                    </Col>
+                </Row>
+            
+            </Container>
             {/* {setPagination(arrayLength)} */}
+
+            <Modal show={popoverOpen} onHide={handleClose}>
+                <Modal.Header closeButton>
+                    <strong>잠깐!</strong>
+                </Modal.Header>
+                <Modal.Body>
+                    <p>업체마다 배달 최소비가 있다는 것을 잊지 말아주세요!</p>
+                    <p>(이로 인해 한 번 주문 할 때 하나의 업체를 사용하시는 것을 추천합니다)</p>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button onClick={() => handleClose()} variant="danger">쇼핑하러 바로가기</Button>
+                    <Button>Change Language To English</Button>
+                </Modal.Footer>
+
+            </Modal>
 
             
             

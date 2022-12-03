@@ -12,8 +12,9 @@ class FoodDataService {
         return foodCategoriesList;
     }
 
-    getFoodByCategoryAndDeliveryService(searchCategory, searchDeliveryService) {
-        const foodsList = http.get(`/foods/${searchDeliveryService}/${searchCategory}`);
+    getFoodByCategoryAndDeliveryService(categoryList, searchDeliveryService) {
+        const categoryAndDeliveryService = {categoryList: categoryList, deliveryservice: searchDeliveryService}
+        const foodsList = http.post(`/foodsbycategorydeliveryservice`, categoryAndDeliveryService);
         return foodsList;
     }
 

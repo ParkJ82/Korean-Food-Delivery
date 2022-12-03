@@ -33,7 +33,6 @@ async function getShoppingCart(loginId, serverResponse) {
 
 async function returnShoppingCart(serverRequest, serverResponse) {
     const { user } = serverRequest;
-    console.log(user)
     const loginId = await getLoginIdFromAccountId(user)
     getShoppingCart(loginId, serverResponse)
 }

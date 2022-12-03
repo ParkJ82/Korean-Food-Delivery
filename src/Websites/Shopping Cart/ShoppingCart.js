@@ -8,7 +8,7 @@ export default function ShoppingCart() {
     const [dynamicShoppingCart, setDynamicShoppingCart] = useState({});
     const [shoppingCartList, setShoppingCartList] = useState([])
     const [totalPrice, setTotalPrice] = useState(0)
-    const token = localStorage.getItem("token") ? localStorage.getItem("token") : null;
+    const token = sessionStorage.getItem("token") ? sessionStorage.getItem("token") : null;
 
     useEffect(() => {
         async function handleShoppingCart() {
@@ -33,12 +33,12 @@ export default function ShoppingCart() {
     async function getShoppingCart() {
         var shoppingCart = [];
         if (!token) {
-            if (!localStorage.getItem("shoppingCart")) {
-                localStorage.setItem("shoppingCart", JSON.stringify([]))
+            if (!sessionStorage.getItem("shoppingCart")) {
+                sessionStorage.setItem("shoppingCart", JSON.stringify([]))
                 shoppingCart = [];
             }
             else {
-                shoppingCart = JSON.parse(localStorage.getItem("shoppingCart"));
+                shoppingCart = JSON.parse(sessionStorage.getItem("shoppingCart"));
             }
         } else {
             await account.getShoppingCartFromToken(token)

@@ -1,25 +1,14 @@
+import e from "express";
 import express from "express";
 import pool from "../foods.js";
 
 const foodsRoutes = express.Router();
 
-async function filterByNoFilter() {
-    const filteredFood = await pool.query("SELECT * FROM foods");
-    return filteredFood
-}
-
-async function filterByCategory(category) {
+async function filterByCategories(categoryIn) {
+    var SQLStatement = "SELECT * FROM foods WHERE category IN "
+    SQLStatement = SQLStatement.concat(categoryIn)
     const filteredFood = await pool.query(
-        "SELECT * FROM foods WHERE category = $1",
-        [category]
-    )
-    return filteredFood
-}
-
-async function filterByDeliveryService(deliveryService) {
-    const filteredFood = await pool.query(
-        "SELECT * FROM foods WHERE delivered_by = $1",
-        [deliveryService]
+        SQLStatement
     )
     return filteredFood
 }
@@ -30,25 +19,31 @@ function handleServerError(error, serverResponse) {
 }
 
 async function handleFoodFilters(serverRequest, serverResponse) {
-    const { deliveryservice, category} = serverRequest.params;
-    var filteredFood;
-    if (deliveryservice == "전체 업체" && category == "전체 음식") {
-        filteredFood = await filterByNoFilter()
-    } 
-    else if (deliveryservice == "전체 업체") {
-        filteredFood = await filterByCategory(category)
-    
+    const { categoryList, deliveryservice } = serverRequest.body;
+    if (categoryList.length === 0) {
+        serverResponse.json(categoryList);
+        return;
     }
-    else if (category == "전체 음식") {
-        filteredFood = await filterByDeliveryService(deliveryservice)
-    
-    } 
+    var categoryIn = "("
+    for (let index = 0; index < categoryList.length; ++index) {
+        if (index === 0) {
+            categoryIn = categoryIn.concat(`'${categoryList[index]}'`)
+        } else {
+            categoryIn = categoryIn.concat(", ")
+            categoryIn = categoryIn.concat(`'${categoryList[index]}'`)
+        }
+    }
+    categoryIn = categoryIn.concat(")")
+    console.log(categoryIn)
+    var filteredFood;
+    if (deliveryservice == "전체 업체") {
+        filteredFood = await filterByCategories(categoryIn)
+    }
     else {
         filteredFood = await pool.query(
-            "SELECT * FROM foods WHERE delivered_by = $1 AND category = $2",
-            [deliveryservice, category]
+            "SELECT * FROM foods WHERE delivered_by = $1 AND category IN ".concat(categoryIn),
+            [deliveryservice]
         )
-    
     }
 
     console.log(filteredFood.rows)
@@ -182,10 +177,11 @@ function setFoodRouteAPI() {
     // Gets foods from given delivery service and category
     // Parameters: req: {params: {deliveryservice: filtered delivery service, category: filtered category, page: current page}}
     // Return: List of filtered foods
-    foodsRoutes.get("/foods/:deliveryservice/:category", async (req, res) => {
+    foodsRoutes.post("/foodsbycategorydeliveryservice", async (req, res) => {
             try {
+                console.log(req.body)
                 handleFoodFilters(req, res)
-        } catch (err) {
+            } catch (err) {
                 handleServerError(err, res)
             }
         })

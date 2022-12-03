@@ -44,11 +44,12 @@ async function getDeliveryServiceWithRatings(serverResponse) {
     const ratings = await pool.query(
         `
         SELECT delivery_services.service_name AS service_name,
-            ROUND(AVG(ratings.rating)::numeric, 1) as rating, COUNT(*) AS rated_users
-                FROM ratings
-                    JOIN delivery_services
-                        ON delivery_services.service_id = ratings.service_id
-                            GROUP BY delivery_services.service_name
+                ROUND(AVG(ratings.rating)::numeric, 1) as rating, COUNT(*) AS rated_users,
+                    delivery_services.delivery_minimum as delivery_minimum
+                        FROM ratings
+                            JOIN delivery_services
+                                ON delivery_services.service_id = ratings.service_id
+                                    GROUP BY delivery_services.service_name, delivery_services.delivery_minimum
         `
     )
     serverResponse.json(ratings.rows)

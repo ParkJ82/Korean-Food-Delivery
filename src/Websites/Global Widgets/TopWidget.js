@@ -50,7 +50,7 @@ function TopWidget() {
     }
 
     return (
-        <>
+
         <Navbar bg="dark" variant="dark" sticky="top">
             <Container>
                 <Navbar.Brand href="/">
@@ -90,7 +90,7 @@ function TopWidget() {
                 </Nav>    
             </Container>
         </Navbar>
-        </>
+
     );
 };
 
