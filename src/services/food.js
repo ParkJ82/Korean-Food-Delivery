@@ -13,7 +13,9 @@ class FoodDataService {
     }
 
     getFoodByCategoryAndDeliveryService(categoryList, searchDeliveryService) {
+        
         const categoryAndDeliveryService = {categoryList: categoryList, deliveryservice: searchDeliveryService}
+        console.log(categoryAndDeliveryService)
         const foodsList = http.post(`/foodsbycategorydeliveryservice`, categoryAndDeliveryService);
         return foodsList;
     }

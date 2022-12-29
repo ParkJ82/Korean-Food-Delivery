@@ -3,12 +3,16 @@ import Table from "react-bootstrap/Table";
 import Button from "react-bootstrap/Button";
 import { useState } from "react";
 import account from "../../services/account";
+import { useTranslation } from "react-i18next"
+
 
 export default function ShoppingCart() {
+    const { t } = useTranslation()
+
     const [dynamicShoppingCart, setDynamicShoppingCart] = useState({});
     const [shoppingCartList, setShoppingCartList] = useState([])
     const [totalPrice, setTotalPrice] = useState(0)
-    const token = sessionStorage.getItem("token") ? sessionStorage.getItem("token") : null;
+    const token = localStorage.getItem("token") ? localStorage.getItem("token") : null;
 
     useEffect(() => {
         async function handleShoppingCart() {
@@ -20,11 +24,19 @@ export default function ShoppingCart() {
 
 
     useEffect(() => {
-        async function handleDynamicShoppingCart() {
-            const dynamicShoppingCart = await getDynamicShoppingCart()
-            setDynamicShoppingCart(dynamicShoppingCart);
-        }
-        handleDynamicShoppingCart()
+        // async function handleDynamicShoppingCart() {
+        //     let dynamicShoppingCart
+        //     if (!token) {
+        //         dynamicShoppingCart = await getDynamicShoppingCartFromLocalStorage()
+        //         setShoppingCartList(dynamicShoppingCart)
+        //         setDynamicShoppingCart(dynamicShoppingCart);
+        //     } else {
+        //         dynamicShoppingCart = await getDynamicShoppingCart()
+        //         setDynamicShoppingCart(dynamicShoppingCart);
+        //     }
+        // }
+        // handleDynamicShoppingCart()
+        
         const currentTotalCost = getTotalCost()
         setTotalPrice(currentTotalCost)
     }, [shoppingCartList])
@@ -38,7 +50,9 @@ export default function ShoppingCart() {
                 shoppingCart = [];
             }
             else {
-                shoppingCart = JSON.parse(sessionStorage.getItem("shoppingCart"));
+                const newShoppingCart = JSON.parse(sessionStorage.getItem("shoppingCart"));
+                console.log(newShoppingCart)
+                shoppingCart = await getShoppingCartFromLocalStroage(newShoppingCart)
             }
         } else {
             await account.getShoppingCartFromToken(token)
@@ -50,37 +64,74 @@ export default function ShoppingCart() {
         return shoppingCart; 
     }
 
-    async function getDynamicShoppingCart() {
+    async function getShoppingCartFromLocalStroage(inputCart) {
         const inputShoppingCart = {};
-        console.log(shoppingCartList)
-        const adjustedShoppingCart = getShoppingCartListFromInputCart(shoppingCartList)
-        for (let index = 0; index < adjustedShoppingCart.length; index++) {
-            if (adjustedShoppingCart[index].food_id in inputShoppingCart) {
-                inputShoppingCart[adjustedShoppingCart[index].food_id].Amount++;
+        for (let index = 0; index < inputCart.length; index++) {
+            if (inputCart[index].food_id in inputShoppingCart) {
+                inputShoppingCart[inputCart[index].food_id].amount++;
             }
             else {
-                inputShoppingCart[adjustedShoppingCart[index].food_id] = 
-                {Food: adjustedShoppingCart[index], Amount: 1}
+                inputShoppingCart[inputCart[index].food_id] = 
+                {food_name: inputCart[index].food_name, delivered_by: inputCart[index].delivered_by, price: inputCart[index].price, amount: 1}
             }
         }
-        return inputShoppingCart
+
+        console.log(inputShoppingCart)
+
+        const newShoppingCart = []
+
+        for (var currentFood in inputShoppingCart) {
+            newShoppingCart.push(inputShoppingCart[currentFood])
+        }
+        return newShoppingCart;
     }
 
-    function getShoppingCartListFromInputCart(inputCart) {
-        const shoppingCart = []
-        for (let currentFoodIndex = 0; currentFoodIndex < inputCart.length; ++currentFoodIndex) {
-            for (let amount = 0; amount < inputCart[currentFoodIndex].amount; ++amount) {
-                shoppingCart
-                    .push(
-                        {food_id: inputCart[currentFoodIndex].food_id, food_name: inputCart[currentFoodIndex],
-                            category: inputCart[currentFoodIndex].category, price: inputCart[currentFoodIndex].price,
-                                delivered_by: inputCart[currentFoodIndex].delivered_by, 
-                                    is_set_menu: inputCart[currentFoodIndex].is_set_menu
-                    })
-            }
-        }
-        return shoppingCart;
-    }
+    // async function getDynamicShoppingCart() {
+    //     const inputShoppingCart = {};
+    //     console.log(shoppingCartList)
+    //     const adjustedShoppingCart = getShoppingCartListFromInputCart(shoppingCartList)
+    //     for (let index = 0; index < adjustedShoppingCart.length; index++) {
+    //         if (adjustedShoppingCart[index].food_id in inputShoppingCart) {
+    //             inputShoppingCart[adjustedShoppingCart[index].food_id].Amount++;
+    //         }
+    //         else {
+    //             inputShoppingCart[adjustedShoppingCart[index].food_id] = 
+    //             {Food: adjustedShoppingCart[index], Amount: 1}
+    //         }
+    //     }
+    //     console.log(inputShoppingCart)
+    //     return inputShoppingCart
+    // }
+
+    // async function getDynamicShoppingCartFromLocalStorage() {
+    //     const inputShoppingCart = {};
+    //     for (let index = 0; index < shoppingCartList.length; index++) {
+    //         if (shoppingCartList[index].food_id in inputShoppingCart) {
+    //             inputShoppingCart[shoppingCartList[index].food_id].Amount++;
+    //         }
+    //         else {
+    //             inputShoppingCart[shoppingCartList[index].food_id] = 
+    //             {Food: shoppingCartList[index], Amount: 1}
+    //         }
+    //     }
+    //     console.log(inputShoppingCart)
+    //     return inputShoppingCart
+    // }
+
+    // function getShoppingCartListFromInputCart(inputCart) {
+    //     const shoppingCart = []
+    //     for (let currentFoodIndex = 0; currentFoodIndex < inputCart.length; ++currentFoodIndex) {
+    //         for (let amount = 0; amount < inputCart[currentFoodIndex].amount; ++amount) {
+    //             shoppingCart
+    //                 .push(
+    //                     {food_id: inputCart[currentFoodIndex].food_id, food_name: inputCart[currentFoodIndex],
+    //                         category: inputCart[currentFoodIndex].category, price: inputCart[currentFoodIndex].price,
+    //                             delivered_by: inputCart[currentFoodIndex].delivered_by
+    //                 })
+    //         }
+    //     }
+    //     return shoppingCart;
+    // }
 
 
     function getHTMLArray() {
@@ -99,7 +150,7 @@ export default function ShoppingCart() {
                 <td>{shoppingCartList[index].food_name}</td>
                 <td>{shoppingCartList[index].amount}</td>
                 <td>{shoppingCartList[index].delivered_by}</td>
-                <td>{shoppingCartList[index].price * shoppingCartList[index].amount}</td>
+                <td>{(shoppingCartList[index].price * shoppingCartList[index].amount).toFixed(2)}</td>
             </tr>)
         }
         return outputList
@@ -118,7 +169,7 @@ export default function ShoppingCart() {
         for (let foodIndex = 0; foodIndex < shoppingCartList.length; foodIndex++) {
             totalPrice += shoppingCartList[foodIndex].price * shoppingCartList[foodIndex].amount;
         }
-        return totalPrice
+        return totalPrice.toFixed(2)
     }
 
     return (
@@ -130,17 +181,17 @@ export default function ShoppingCart() {
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>음식명</th>
-                        <th>수량</th>
-                        <th>배달업체</th>
-                        <th>가격</th>
+                        <th>{t("food_name")}</th>
+                        <th>{t("amount_popover")}</th>
+                        <th>{t("delivery_service")}</th>
+                        <th>{t("price")}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {getHTMLArray()}
                     
                     <tr>
-                        <td colSpan={4} text-align="right">총 가격:</td>
+                        <td colSpan={4} text-align="right">{t("total_price")}:</td>
                         <td>{totalPrice}</td>
                     </tr>
                 </tbody>

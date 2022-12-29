@@ -22,6 +22,11 @@ class deliveryServiceDataService {
         return deliveryServicesRatingsList;
     }
 
+    getDeliveryServiceRating(deliveryService) {
+        const rating = http.post("/getrating", deliveryService)
+        return rating;
+    }
+
     // MOVED TO PYTHON
     deleteDeliveryService(id) {
         return http.delete(`/delivery_services/${id}`);

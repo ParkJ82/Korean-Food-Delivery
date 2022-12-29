@@ -7,9 +7,13 @@ import Row from "react-bootstrap/Row";
 import AccountDataService from "../../services/account";
 import { toast } from "react-toastify";
 
+import { useTranslation } from "react-i18next";
+
 
 const LoginWidget = () => {
     // const inputUser = useContext(LoginContext);
+
+    const { t } = useTranslation()
 
     const [validated, setValidated] = useState(false);
 
@@ -21,23 +25,32 @@ const LoginWidget = () => {
     const [user, setUser] = useState(initialUserState);
 
     function handleSubmit(event) {
-        handleCheckValidity(event)
-        setValidated(true);
+        try {
+            if (handleCheckValidity(event)) {
+                login(user)
+            }
+        } catch (err) {
+            handleLoginError(err)
+        }
     }
 
     function handleCheckValidity(event) {
         const form = event.currentTarget;
+        event.preventDefault();
+        event.stopPropagation();
+        setValidated(true)
         if (form.checkValidity() === false) {
-            event.preventDefault();
-            event.stopPropagation();
+            return false;
         }
+        return true;
     }
 
     async function login(inputUser) {
         try {
             AccountDataService.loginToAccountAndGetToken(inputUser)
-                .then(response => {
-                    handleLogin(response)
+                .then(async (response) => {
+                    await handleLogin(response)
+                    window.location.reload();
                 })
         } catch (err) {
             handleLoginError(err)
@@ -47,6 +60,7 @@ const LoginWidget = () => {
     async function handleLogin(response) {
         if (response.data.token) {
             await storeTokenInLocalStorage(response.data.token)
+            
         } else {
             gettoastError(response)
         }
@@ -74,48 +88,48 @@ const LoginWidget = () => {
         <div>
 
 
-            <h1>로그인</h1>
+            <h1>{t("login")}</h1>
 
 
             <Form noValidate validated={validated} onSubmit={handleSubmit}>
                 <Row className="mb-3">
                     <Form.Group as={Col} md="3">
-                        <Form.Label>아이디: </Form.Label>
+                        <Form.Label>{t("user_id")}: </Form.Label>
                         <InputGroup hasValidation>
                             <Form.Control
                                 required
                                 type="text"
                                 name="id"
-                                placeholder="(아이디 입력하세요)"
+                                placeholder={`(${t("insert_id")})`}
                                 value={user.id}
                                 onChange={handleInputChange}
                             />
                             <Form.Control.Feedback type="invalid">
-                                아이디를 입력하세요
+                                {t("insert_id")}
                             </Form.Control.Feedback>
                         </InputGroup>
                     </Form.Group>
                 </Row>
                 <Row className="mb-3">
                     <Form.Group as={Col} md="3">
-                        <Form.Label>비밀번호: </Form.Label>
+                        <Form.Label>{t("password")}: </Form.Label>
                         <InputGroup hasValidation>
                             <Form.Control
                                 required
                                 name="password"
                                 type="password"
-                                placeholder="(비밀번호를 입력하세요)"
+                                placeholder={`(${t("insert_password")})`}
                                 value={user.password}
                                 onChange={handleInputChange}
                             />
                             <Form.Control.Feedback type="invalid">
-                                비밀번호를 입력하세요
+                                {t("insert_password")}
                             </Form.Control.Feedback>
                         </InputGroup>
                     </Form.Group>
                 </Row>
-                <Button onClick={() => login(user)} type="submit">로그인</Button> 계정이 없으신가요? 그렇다면 
-                    <strong><a href="/createaccount">회원가입하기</a></strong>
+                <Button type="submit">{t("login")}</Button> {t("account_not_existing")} &nbsp;
+                    <strong><a href="/createaccount">{t("go_register")}</a></strong>
             </Form>
             
         </div>

@@ -6,10 +6,13 @@ import InputGroup from "react-bootstrap/InputGroup";
 import Row from "react-bootstrap/Row";
 import AccountDataService from "../../services/account";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next"
 
 
 
 function CreateAccountWebsite() {
+
+    const { t } = useTranslation()
 
     const initialNewUserState = {
         name: "",
@@ -39,9 +42,12 @@ function CreateAccountWebsite() {
 
     function checkAndHandleValidity(input) {
         const form = input.currentTarget;
+        
+        
+        input.preventDefault();
+        input.stopPropagation();
+        setValidated(true)
         if (form.checkValidity() === false) {
-            input.preventDefault();
-            input.stopPropagation();
             return false
         }
         return true
@@ -49,16 +55,17 @@ function CreateAccountWebsite() {
 
     function createNewAccountAndGetToken() {
         AccountDataService.createNewAccountAndGetToken(newUser)
-            .then(response => {
-                if (response.token) {
-                    setToken(response.token)
+            .then(async (response) => {
+                if (response.data.token) {
+                    await setToken(response.data.token)
+                    window.location.reload();
                 } else {
                     handleNewAccountError(response)
                 }
             })
     }
 
-    function setToken(token) {
+    async function setToken(token) {
         localStorage.setItem("token", token);
         toast.success("Registered Successfully");
     }
@@ -75,86 +82,86 @@ function CreateAccountWebsite() {
     return (
         <div>
 
-            <h1>계정 생성하기</h1>
+            <h1>{t("create_account")}</h1>
 
             <Form noValidate validated={validated} onSubmit={handleSubmit}>
                 <Row className="mb-3">
                     <Form.Group as={Col} md="4">
-                        <Form.Label>이름: </Form.Label>
+                        <Form.Label>{t("user_name")}: </Form.Label>
                         <InputGroup hasValidation>
                             <Form.Control
                                 required
                                 type="text"
-                                placeholder="(이름을 입력하세요)"
+                                placeholder={`(${t("insert_name")})`}
                                 name = "name"
                                 value = {newUser.name}
                                 onChange={handleInputChange}
                             />
                             <Form.Control.Feedback type="invalid">
-                                이름을 입력하세요
+                                {t("insert_name")}
                             </Form.Control.Feedback>
                         </InputGroup>
                         
                     </Form.Group>
                     <Form.Group as={Col} md="4">
-                        <Form.Label>아이디: </Form.Label>
+                        <Form.Label>{t("user_id")}: </Form.Label>
                         <InputGroup hasValidation>
                             <Form.Control
                                 required
                                 type="text"
-                                placeholder="(아이디를 입력하세요)"
+                                placeholder={`(${t("insert_id")})`}
                                 name = "id"
                                 value = {newUser.id}
                                 onChange={handleInputChange}
                             />
                             <Form.Control.Feedback type="invalid">
-                                아이디를 입력하세요
+                                {t("insert_id")}
                             </Form.Control.Feedback>
                         </InputGroup>
                     </Form.Group>
                 </Row>
                 <Row className="mb-3">
                     <Form.Group as={Col} md="8">
-                        <Form.Label>비밀번호: </Form.Label>
+                        <Form.Label>{t("password")}: </Form.Label>
                         <InputGroup hasValidation>
                             <Form.Control
                                 required
                                 type="password"
-                                placeholder="(비밀번호를 입력하세요)"
+                                placeholder={`(${t("insert_password")})`}
                                 name = "password"
                                 value = {newUser.password}
                                 onChange={handleInputChange}
                             />
                             <Form.Control.Feedback type="invalid">
-                                비밀번호를 입력하세요
+                                {t("insert_password")}
                             </Form.Control.Feedback>
                         </InputGroup>
                     </Form.Group>
                 </Row>
                 <Row className="mb-3">
                     <Form.Group as={Col} md="4">
-                        <Form.Label>전화번호: </Form.Label>
+                        <Form.Label>{t("phone_number")}: </Form.Label>
                         <InputGroup hasValidation>
                             <Form.Control
                                 required
                                 type="number"
                                 name = "phonenumber"
                                 value = {newUser.phonenumber}
-                                placeholder="(전화번호를 입력하세요)"
+                                placeholder={`(${t("insert_phone_number")})`}
                                 onChange={handleInputChange}
                             />
                             <Form.Control.Feedback type="invalid">
-                                전화번호를 입력하세요
+                                {t("insert_phone_number")}
                             </Form.Control.Feedback>
                         </InputGroup>
                         
                     </Form.Group>
                     <Form.Group as={Col} md="4">
-                        <Form.Label>카카오톡 아이디 (선택): </Form.Label>
+                        <Form.Label>{t("kakao_id")} ({t("optional")}): </Form.Label>
                         <InputGroup>
                             <Form.Control
                                 type="text"
-                                placeholder="(카카오톡 아이디를 입력하세요)"
+                                placeholder={`(${t("insert_kakao_id")})`}
                                 name = "kakaoid"
                                 value = {newUser.kakaoid}
                                 onChange={handleInputChange}
@@ -162,7 +169,7 @@ function CreateAccountWebsite() {
                         </InputGroup>
                     </Form.Group>
                 </Row>
-                <Button type="submit">계정 생성</Button>  이미 계정이 있으신가요? 그렇다면 <strong><a href="/login">로그인하기</a></strong>
+                <Button type="submit">{t("create_account")}</Button>  {t("account_existing")} <strong><a href="/login">{t("go_login")}</a></strong>
             </Form>
            
         </div>

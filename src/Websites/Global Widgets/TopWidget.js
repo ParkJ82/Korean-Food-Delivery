@@ -5,13 +5,31 @@ import Navbar from "react-bootstrap/Navbar";
 import Button from "react-bootstrap/Button";
 import AccountDataService from "../../services/account";
 
+import { useTranslation } from "react-i18next"
+import i18next from "i18next";
+import cookies from "js-cookie";
+
 
 function TopWidget() {
     const [user, setUser] = useState(null);
+    const { t } = useTranslation()
+    const currentLanguageCode = cookies.get("i18next") || "kr"
+
 
     useEffect(() => {
         getProfile()
     }, [])
+
+    function changeLanguage() {
+        if (currentLanguageCode === "en") {
+            i18next.changeLanguage("kr")
+        }
+        else {
+            i18next.changeLanguage("en")
+        }
+        window.location.reload();
+    }
+
 
     async function getProfile() {
         try {
@@ -41,7 +59,7 @@ function TopWidget() {
 
     function handleLogout() {
         localStorage.removeItem("token");
-        localStorage.removeItem("shoppingCart");
+        sessionStorage.removeItem("shoppingCart");
         setUser(null);
     }
 
@@ -51,43 +69,49 @@ function TopWidget() {
 
     return (
 
-        <Navbar bg="dark" variant="dark" sticky="top">
+        <Navbar collapseOnSelect bg="dark" variant="dark" sticky="top" expand="md">
             <Container>
                 <Navbar.Brand href="/">
-                    한반 - 초간단 한인 반찬 배달
+                    {t("name")}
                 </Navbar.Brand>
+                <Navbar.Toggle aria-controls="responsive-navbar-nav" />
+                    <Navbar.Collapse id="responsive-navbar-nav">
                 <Nav className="me-auto">
                     <Nav.Link href="/customerservice">
-                    고객센터
+                        {t("customer_service")}
                     </Nav.Link>
-                    <Nav.Link href="/newcompany">
+                    {/* <Nav.Link href="/newcompany">
                         업체신가요? 지금 업체를 가입하세요!
-                    </Nav.Link>
-                    {/* <Nav.Link href="/en">
-                        change language to english
                     </Nav.Link> */}
+                    <Nav.Link onClick={() => {changeLanguage()}}>
+                        {t("change_language")}
+                    </Nav.Link>
                 </Nav>
                 
                 <Nav className="ms-auto">
                     {user ? (
                     <>
                         <Nav.Link href="/">
-                            현재 회원: {user} &nbsp;
-                            <Button onClick={() => logout()} className="btn btn-success">로그아웃</Button>
+                            {t("current_user")}: {user} &nbsp;
+                            {/* <Button onClick={() => logout()} className="btn btn-success" href="/">{t("log_out")}</Button> */}
+                        </Nav.Link>
+                        <Nav.Link href="/" onClick={() => logout()}>
+                            {t("log_out")}
                         </Nav.Link>
                     </>
                     ) : (
                     <>
                         <Nav.Link href="/createaccount">
-                            <Button className="btn btn-success">회원가입</Button>
+                            {t("register")}
                         </Nav.Link>
                         <Nav.Link href="/login">
-                            <Button className="btn btn-success">로그인</Button>
+                            {t("login")}
                         </Nav.Link>
                     </>
                     )}
                     
-                </Nav>    
+                </Nav> 
+                </Navbar.Collapse>   
             </Container>
         </Navbar>
 
