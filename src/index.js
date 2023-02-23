@@ -5,7 +5,7 @@ import { initReactI18next } from "react-i18next"
 import LanguageDetector from "i18next-browser-languagedetector"
 import HttpApi from "i18next-http-backend"
 
-import React from 'react';
+import React, {Suspense} from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
@@ -19,27 +19,36 @@ i18n
     .use(LanguageDetector)
     .use(HttpApi)
     .init({
-        supportedLngs: ["kr", "en"],
-        fallbackLng: "kr",
+        supportedLngs: ["ko", "en"],
+        fallbackLng: "ko",
         detection: {
             caches: ["cookie"],
-            order: ["path", "cookie", "htmlTag", "localStorage", "subdomain"],
+            order: ["cookie", "htmlTag", "localStorage", "subdomain"],
         },
         backend: {
             loadPath: '/locales/{{lng}}/translation.json'
         },
-        react: { useSuspense: false },
         
     })
+
+const loadingMarkup = (
+    <div className="py-4 text-center">
+        <h2>로딩중 (Loading)..</h2>
+    </div>
+)
 
 // Run App with Router
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-
-    <BrowserRouter>
-        <Provider store={storedRedux}>
-            <App />
-        </Provider>
-    </BrowserRouter>
+    <Suspense fallback={loadingMarkup}>
+        
+        <BrowserRouter>
+            <Provider store={storedRedux}>    
+                <App />
+            </Provider>
+        </BrowserRouter>
+        
+    </Suspense>
+    
 );
 

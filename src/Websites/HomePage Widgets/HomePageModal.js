@@ -8,7 +8,7 @@ import i18next from "i18next";
 
 export default function HomePageModal() {
     const { t } = useTranslation()
-    const [popoverOpen, setPopoverOpen] = useState(sessionStorage.getItem("false") ? false : true)
+    const [popoverOpen, setPopoverOpen] = useState(false)
     const currentLanguageCode = cookies.get("i18next") || "kr"
 
     function handleClose() {
@@ -32,6 +32,7 @@ export default function HomePageModal() {
                 <strong>{t("warning")}!</strong>
             </Modal.Header>
             <Modal.Body>
+                <h3>{t("announcements_important")}</h3>
                 <p>{t("delivery_warning")}!</p>
                 <p>({t("delivery_recommendation")})</p>
             </Modal.Body>

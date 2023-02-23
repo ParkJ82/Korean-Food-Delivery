@@ -1,6 +1,4 @@
 
-const token = localStorage.getItem("token") ? localStorage.getItem("token") : null
-
 
 function cartListReducer(state = [], action) {
     switch (action.type) {

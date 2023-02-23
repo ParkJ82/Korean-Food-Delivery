@@ -6,7 +6,7 @@ import InputGroup from "react-bootstrap/InputGroup";
 import Row from "react-bootstrap/Row";
 import AccountDataService from "../../services/account";
 import { toast } from "react-toastify";
-
+import Container from "react-bootstrap/Container"
 import { useTranslation } from "react-i18next";
 
 
@@ -49,7 +49,7 @@ const LoginWidget = () => {
         try {
             AccountDataService.loginToAccountAndGetToken(inputUser)
                 .then(async (response) => {
-                    await handleLogin(response)
+                    // await handleLogin(response)
                     window.location.reload();
                 })
         } catch (err) {
@@ -57,23 +57,23 @@ const LoginWidget = () => {
         }
     }
 
-    async function handleLogin(response) {
-        if (response.data.token) {
-            await storeTokenInLocalStorage(response.data.token)
+    // async function handleLogin(response) {
+    //     if (response.data.token) {
+    //         await storeTokenInLocalStorage(response.data.token)
             
-        } else {
-            gettoastError(response)
-        }
-    }
+    //     } else {
+    //         gettoastError(response)
+    //     }
+    // }
 
-    async function storeTokenInLocalStorage(token) {
-        localStorage.setItem("token", token);
-        toast.success("Logged in Successfully");
-    }
+    // async function storeTokenInLocalStorage(token) {
+    //     localStorage.setItem("token", token);
+    //     toast.success("Logged in Successfully");
+    // }
 
-    function gettoastError(response) {
-        toast.error(response);
-    }
+    // function gettoastError(response) {
+    //     toast.error(response);
+    // }
 
     function handleLoginError(error) {
         console.error(error.message);
@@ -85,15 +85,19 @@ const LoginWidget = () => {
     };
 
     return (
-        <div>
+        <Container>
+            <br />
+            <br />
+            <Row>
+                <Col md={{ span: 6, offset: 3 }}>
+                    <h1>{t("login")}</h1>
+                </Col>
+            </Row>
 
-
-            <h1>{t("login")}</h1>
-
-
+            <Row>
             <Form noValidate validated={validated} onSubmit={handleSubmit}>
                 <Row className="mb-3">
-                    <Form.Group as={Col} md="3">
+                    <Form.Group as={Col} md={{ span: 6, offset: 3 }}>
                         <Form.Label>{t("user_id")}: </Form.Label>
                         <InputGroup hasValidation>
                             <Form.Control
@@ -111,7 +115,7 @@ const LoginWidget = () => {
                     </Form.Group>
                 </Row>
                 <Row className="mb-3">
-                    <Form.Group as={Col} md="3">
+                    <Form.Group as={Col} md={{ span: 6, offset: 3 }}>
                         <Form.Label>{t("password")}: </Form.Label>
                         <InputGroup hasValidation>
                             <Form.Control
@@ -128,11 +132,13 @@ const LoginWidget = () => {
                         </InputGroup>
                     </Form.Group>
                 </Row>
+                <Col md={{ span: 6, offset: 3 }}>
                 <Button type="submit">{t("login")}</Button> {t("account_not_existing")} &nbsp;
                     <strong><a href="/createaccount">{t("go_register")}</a></strong>
+                </Col>
             </Form>
-            
-        </div>
+            </Row>
+        </Container>
         
     )
     

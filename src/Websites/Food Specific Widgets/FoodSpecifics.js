@@ -10,11 +10,21 @@ import Row from "react-bootstrap/Row"
 import Col from "react-bootstrap/Col"
 import Container from "react-bootstrap/Container"
 import Image from "react-bootstrap/Image"
+import FoodCard from "../Food Widgets/FoodCard";
+import AccountDataService from "../../services/account";
+import '../components/LetterFonts.css'
+import { t } from "i18next";
+import Form from "react-bootstrap/Form"
+import { useDispatch } from "react-redux";
+import { adjustDynamicShoppingCart } from "../../redux/actions"
+import { addToShoppingCart } from "../HomePage Widgets/master/ShoppingCart"
+
 
 // 가격, 배달업체, 배달날짜, 이름, 사진
 
 function FoodSpecifics() {
     const { id } = useParams();
+    const dispatch = useDispatch()
     const initialFoodState = {
         food_id: null,
         food_name: "",
@@ -24,33 +34,69 @@ function FoodSpecifics() {
         is_set_menu: false
     }
     const [food, setFood] = useState(initialFoodState);
+    const [amount, setAmount] = useState(1)
     // const [foods, setFoods] = useState([]);
-    const [rating, setRating] = useState(5);
+    const [rating, setRating] = useState(0);
     const [opened, setOpened] = useState(false);
-    const token = localStorage.getItem("token") ? localStorage.getItem("token") : null;
+    const [foodsList, setFoodsList] = useState([]);
+    const foodAmounts = [1, 2, 3, 4, 5]
+    // const token = localStorage.getItem("token") ? localStorage.getItem("token") : null;
 
     useEffect(() => {
         async function getFoodAndRating() {
+            let token
             await getFoodById(id);
-            if (token !== null && food.delivered_by != "") {
-            await DeliveryServiceDataService.getDeliveryServiceRating({jwt_token: token, delivery_service: food.delivered_by})
+            await AccountDataService.getToken()
+                .then(async response => {
+                    token = response.data
+                })
+            if (token !== "false" && food.delivered_by != "") {
+            await DeliveryServiceDataService.getDeliveryServiceRating({delivery_service: food.delivered_by})
                 .then(async (response) => {
-                    console.log(response.data.rows[0].rating)
                     setRating(response.data.rows[0].rating)
                 })
             }
         }
-        getFoodAndRating()
-    }, [food.delivered_by, id, token]);
 
-    function AdjustRating(nextValue) {
-        console.log(nextValue)
-        if (!token) {
+        async function setAllFoodsList() {
+            let categories = []
+            await FoodDataService.getAllFoodCategories()
+                .then(async response => {
+                    categories = [...(new Set(response.data.map(({category})=>category)))]
+                })
+            await FoodDataService.getFoodByCategoryAndDeliveryService(categories, food.delivered_by) 
+                .then(async response => {
+                    setFoodsList(response.data)
+                })
+            }
+        getFoodAndRating()
+        setAllFoodsList()
+    }, [food.delivered_by, id]);
+
+    function onChangeAmount(e) {
+        const amount = e.target.value;
+        setAmount(amount);
+    }
+
+    function handleAddToShoppingCart(amount) {
+        dispatch(addToShoppingCart(food, amount))
+        dispatch(adjustDynamicShoppingCart(food, amount))
+    }
+
+    
+
+    async function AdjustRating(nextValue) {
+        let token
+        await AccountDataService.getToken()
+            .then(async response => {
+                token = response.data
+            })
+        if (token === "false") {
             setOpened(true)
         } else {
             setRating(nextValue);
             DeliveryServiceDataService
-                .setNewRating({jwt_token: token, delivery_service: food.delivered_by, rating: nextValue})
+                .setNewRating({delivery_service: food.delivered_by, rating: nextValue})
         }
     }
 
@@ -73,16 +119,18 @@ function FoodSpecifics() {
     }
 
     return (
-            <div>
+        <div>
+            
+            <Container>
+                <br />
             <Modal show={opened} onHide={() => setOpened(false)}>
                 <Modal.Header closeButton>
-                    로그인이 필요한 서비스입니다
+                    {t("login_required")}
                 </Modal.Header>
                 <Modal.Footer>
-                    <Link to="/login">로그인하러 가기</Link>
+                    <Link to="/login">{t("go_to_login")}</Link>
                 </Modal.Footer>
             </Modal>
-
             <Container fluid={true} className="p-0">
                 <Row>
                     <Col sm={6}>
@@ -91,69 +139,75 @@ function FoodSpecifics() {
                     </Col>
                     <Col sm={6}>
                         <h1>{food.food_name}</h1>
-                        <h5>배달업체: {food.delivered_by} &nbsp;</h5>
-                        <h9>이 업체에 대한 평점 주기: 
+                        <h5>{t("delivery_service")}: {food.delivered_by} &nbsp;</h5>
+                        <h5 className="div-inline">{t("give_rating")}: </h5> &nbsp;
                             <StarRatingComponent 
+                                className="div-inline"
                                 name="rating"
                                 value={rating}
                                 onStarClick={AdjustRating}
-                            /></h9>
-                        <h5>가격: ${food.price}</h5>
-                        <h5>수량: </h5>
-                        <Button>
-                            음식 담기
+                            />
+                        <h5>{t("price")}: ${food.price}</h5>
+                        <h5 className="div-inline">{t("amount_popover")}: </h5> &nbsp;
+                        <div className="div-inline" style={{width: '60px'}}>
+                            <Form.Select onChange={onChangeAmount} >
+                                {foodAmounts.map(amount => {
+                                    return (
+                                        <option value={amount}> {amount} </option>
+                                    )
+                                })}
+                            </Form.Select>
+                        </div>
+                        <br />
+                        <br />
+                        <Button 
+                            style={{backgroundColor: "#77cc6d"}} 
+                            className="border-0 rounded-0" 
+                            size="lg"
+                            onClick={() => handleAddToShoppingCart(amount)}
+                            href="/"
+                        >
+                            {t("put_in_shopping_cart")}
                         </Button>
-                        <Button>
-                            장바구니 보기
+                        &nbsp;
+                        <Button 
+                            href="/shoppingcart" 
+                            style={{backgroundColor: "#77cc6d"}} 
+                            className="border-0 rounded-0" 
+                            size="lg"
+                        >
+                            {t("view_shopping_cart")}
                         </Button>
                         
+
                     </Col>
-                    
+                </Row>
+            </Container>
+            </Container>
                     <Row>
+                        <Container fluid={true}>
                         <h1></h1>
                         <br/>
                         <br/>
-                        <h2>이 업체의 다른 상품 보기</h2>
+                        <Container>
+                        <h2>{t("see_different_foods")}</h2>
+                        </Container>
                         <br/>
-                        {/* {foods.map((food) => {
-                                return (
-                                    <div className="div-inline">
-                                    <Card style={{ width: '18rem'}}>
-                                        <Card.Img style={{ height: '15rem' }} variant="top" src={food.picture_url} />
-                                        <Card.Body style={{ height: '11rem' }}>
-                                                <Card.Title>
-                                                    {food.food_name}
-                                                </Card.Title>
-                                                <Card.Text>
-                                                    ${food.price}
-                                                </Card.Text>
-
-                                                <Card.Subtitle className="mb-2 text-muted">
-                                                    {t("delivery_service")}: {food.delivered_by}
-                                                    </Card.Subtitle> 
-                                                    
-                                                <Link to={`/foods/${food.food_id}`}>
-                                                    {t("see_more")}
-                                                </Link>&nbsp;&nbsp;&nbsp;
-                                                <OverlayTrigger
-                                                    trigger="click"
-                                                    placement="right"
-                                                    overlay={getPopover(food)}
-                                                    rootClose={true}
-                                                >
-                                                    <Link>{t("put_in_shopping_cart")}</Link>
-                                                </OverlayTrigger>
-                                        </Card.Body>
-                                    </Card>
-                                    </div>)}
-                        )} */}
-
+                        
+                        {foodsList.map((food) => {
+                            return (
+                                <div className="div-inline">
+                                    <FoodCard food={food}/>
+                                    &nbsp;
+                                </div>
+                            )
+                        })}
+                        </Container>
                     </Row>
                     
-                </Row>
                 
-            </Container>            
-            
+                        
+        
         
         </div>
 

@@ -29,3 +29,10 @@
     -webkit-appearance: none; 
     margin: 0; 
   }  
+
+.jumbotron {
+    padding: 2rem 1rem;
+    margin-bottom: 2rem;
+    background-color: #ecfdff;
+    border-radius: .3rem;
+}

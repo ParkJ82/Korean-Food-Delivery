@@ -3,32 +3,56 @@ import http from "../http-common";
 class AccountDataService {
 
     loginToAccountAndGetToken(loginIdAndPassword) {
-        const token = http.post("/login", loginIdAndPassword);
+        const token = http.post("/account/login", loginIdAndPassword);
         return token;
     }
 
     createNewAccountAndGetToken(newAccountInformation) {   
-        const token = http.post("/newaccount", newAccountInformation);
+        const token = http.post("/account/newaccount", newAccountInformation);
         return token
     }
 
-    getUserIdFromToken(token) {
-        const userId = http.post("/getid", {jwt_token: token});
+    getUserIdFromToken() {
+        const userId = http.post("/account/getid");
         return userId;
     }
 
-    getNameFromToken(token) {
-        const name = http.post("/getname", {jwt_token: token});
+    getNameFromToken() {
+        const name = http.post("/account/getname");
         return name;
     }
 
-    async getShoppingCartFromToken(token) {
-        const shoppingCartList = http.post("/getshoppingcart", {jwt_token: token});
+    async getShoppingCartFromToken() {
+        const shoppingCartList = http.post("/shoppingcart/getshoppingcart");
         return shoppingCartList;
     }
 
     updateShoppingCart(newShoppingCartInformation) {
-        http.post("/updateshoppingcart", newShoppingCartInformation);
+        http.post("/shoppingcart/updateshoppingcart", newShoppingCartInformation);
+    }
+
+    deleteFromShoppingCart(deleteInformation) {
+        http.delete("/shoppingcart/deleteshoppingcart", {data: deleteInformation})
+    }
+
+    deleteAllFromShoppingCart(deleteInformation) {
+        http.delete("/shoppingcart/deleteallfromshoppingcart", {data: deleteInformation})
+    }
+
+    deleteAllFromUser(deleteInformation) {
+        http.delete("/shoppingcart/deleteall", {data: deleteInformation})
+    }
+
+    deleteToken() {
+        http.get("/token/deletetoken")
+    }
+
+    getToken() {
+        return http.get("/token/gettoken")
+    }
+
+    getInfo() {
+        return http.post("/account/getinfo")
     }
 
 }

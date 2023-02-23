@@ -1,26 +1,26 @@
-import React, { useState, useEffect } from "react"
+import React, { useState } from "react"
 import Card from "react-bootstrap/Card"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
-import OverlayTrigger from "react-bootstrap/OverlayTrigger"
 import Popover from "react-bootstrap/Popover"
 import Form from "react-bootstrap/Form"
+import Modal from "react-bootstrap/Modal"
 import Button from "react-bootstrap/Button"
                        
-import { useDispatch, useSelector } from "react-redux";
-import { adjustDynamicShoppingCart, returnDynamicShoppingCart } from "../../redux/actions"
-import { addToShoppingCart } from "../HomePage Widgets/ShoppingCart"
+import { useDispatch } from "react-redux";
+import { adjustDynamicShoppingCart } from "../../redux/actions"
+import { addToShoppingCart } from "../HomePage Widgets/master/ShoppingCart"
 
-import storedRedux from "../../redux/store/store"
                                     
 export default function FoodCard(input) {
 
     // const cartList = useSelector(state=>state.cartList)
     const dispatch = useDispatch()
-    const cartList = useSelector(state=>state.cartList)
+    // const cartList = useSelector(state=>state.cartList)
 
     const { t } = useTranslation()
     const [amount, setAmount] = useState(1)
+    const [show, setShow] = useState(false)
     const foodAmounts = [1, 2, 3, 4, 5]
 
     function onChangeAmount(e) {
@@ -28,10 +28,15 @@ export default function FoodCard(input) {
         setAmount(amount);
     }
 
+    function showDetails() {
+        setShow(true)
+    }
+
 
     function handleAddToShoppingCart(food, amount) {
         dispatch(addToShoppingCart(food, amount))
         dispatch(adjustDynamicShoppingCart(food, amount))
+        setShow(false)
     }
 
     function getPopover(food) {
@@ -52,7 +57,13 @@ export default function FoodCard(input) {
                 </Form.Select>
             </div>
                 <br/>
-            <Button onClick={() => handleAddToShoppingCart(food, amount)}>{t("put_in_shopping_cart_popover")}</Button>
+            <Link onClick={() => handleAddToShoppingCart(food, amount)}>{t("put_in_shopping_cart_popover")}</Link>
+            &nbsp;
+            or 
+            &nbsp;
+            <Link to={`/foods/${input.food.food_id}`}>
+                            {t("see_more")}
+            </Link>
             </Popover.Body>
             </Popover>
         )
@@ -61,33 +72,96 @@ export default function FoodCard(input) {
 
     return (
         <div className="div-inline">
-            <Card style={{ width: '18rem'}}>
-                <Card.Img style={{ height: '15rem' }} variant="top" src={input.food.picture_url} />
-                <Card.Body style={{ height: '11rem' }}>
-                        <Card.Title>
-                            {input.food.food_name}
-                        </Card.Title>
-                        <Card.Text>
-                            ${input.food.price}
-                        </Card.Text>
-
-                        <Card.Subtitle className="mb-2 text-muted">
-                            {t("delivery_service")}: {input.food.delivered_by}
-                            </Card.Subtitle> 
-                            
-                        <Link to={`/foods/${input.food.food_id}`}>
-                            {t("see_more")}
-                        </Link>&nbsp;&nbsp;&nbsp;
-                        <OverlayTrigger
+            <Card >
+                <Card.Img style={{ height: '10rem' , width: "10rem" }} variant="top" src={input.food.picture_url} />
+                {/* <OverlayTrigger
                             trigger="click"
-                            placement="right"
+                            placement="top"
                             overlay={getPopover(input.food)}
                             rootClose={true}
-                        >
-                            <Link>{t("put_in_shopping_cart")}</Link>
-                        </OverlayTrigger>
-                </Card.Body>
+                > */}
+                        <Card.Body style={{ height: '10rem', width: "10rem" }} onClick={showDetails}>
+                                
+                                
+                                <Card.Title style={{fontSize: "15px"}}>
+                                <h6>{input.food.food_name}</h6>
+                                </Card.Title>
+                                
+                                
+
+                                <Card.Text>
+                                    ${(input.food.price.toFixed(2))}
+                                </Card.Text>
+
+                                <Card.Subtitle className="mb-2 text-muted" style={{fontSize:"15px"}}>
+                                        {t("delivery_service")}: {input.food.delivered_by}
+                                    </Card.Subtitle> 
+                                    
+                                
+                                    {/* <Link>{t("put_in_shopping_cart")}</Link> */}
+                                    
+                        </Card.Body>
+                    
+                    {/* <div className="div-inline" style={{width: '60px'}}>
+                        <Form.Select onChange={onChangeAmount} >
+                            {foodAmounts.map(amount => {
+                                return (
+                                    <option value={amount}> {amount} </option>
+                                )
+                            })}
+                        </Form.Select>
+                    </div>
+                        <br/>
+                    <Link onClick={() => handleAddToShoppingCart(input.food, amount)}>{t("put_in_shopping_cart_popover")}</Link>
+                    &nbsp;
+                    or 
+                    &nbsp;
+                    <Link to={`/foods/${input.food.food_id}`}>
+                                    {t("see_more")}
+                    </Link> */}
+                {/* </OverlayTrigger> */}
             </Card>
+            <Modal show={show} onHide={() => setShow(false)}>
+                <Modal.Header closeButton>
+                    <h3><strong>{input.food.food_name}</strong></h3>
+                </Modal.Header>
+                <Modal.Body>
+                {t("delivery_service")}: {input.food.delivered_by} <br />
+                {t("price")}: ${Number(input.food.price).toFixed(2)} <br />
+                {t("amount_popover")}: &nbsp;
+                <div className="div-inline" style={{width: '60px'}}>
+                        <Form.Select onChange={onChangeAmount} >
+                            {foodAmounts.map(amount => {
+                                return (
+                                    <option value={amount}> {amount} </option>
+                                )
+                            })}
+                        </Form.Select>
+                </div>
+                <br />
+                <br />
+                        
+                </Modal.Body>
+                <Modal.Footer>
+                        <Button 
+                            style={{backgroundColor: "#77cc6d"}} 
+                            className="border-0 rounded-0" 
+                            size="lg" 
+                            onClick={() => handleAddToShoppingCart(input.food, amount)} 
+                        >
+                                {t("put_in_shopping_cart_popover")}
+                        </Button>
+                        &nbsp;
+                        <Button 
+                            style={{backgroundColor: "#77cc6d"}} 
+                            className="border-0 rounded-0" 
+                            size="lg" 
+                            href={`/foods/${input.food.food_id}`}
+                        >
+                            {t("see_more")}
+                        </Button>
+                </Modal.Footer>
+            </Modal>
         </div>
     )
 }                

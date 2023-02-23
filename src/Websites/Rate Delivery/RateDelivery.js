@@ -33,7 +33,6 @@ export default function RateDelivery() {
 
     const handleInputChange = event => {
         const newComment = event.target.value;
-        console.log(newComment);
         setComment(newComment);
     };
 
@@ -42,14 +41,12 @@ export default function RateDelivery() {
     }
 
     function submitReview() {
-        console.log(deliveryService);
         if (deliveryService == "업체를 고르세요") {
             return new Error();
         }
         if (comment == "") {
 
         }
-        console.log("test");
         DeliveryServiceDataService.setDeliveryServiceRating(deliveryService, rating);
     }
 

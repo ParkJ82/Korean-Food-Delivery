@@ -3,7 +3,7 @@ import http from "../http-common";
 class FoodDataService {
 
     getAllFoods() {
-        const foodsList = http.get(`/foods`);
+        const foodsList = http.get(`/foods/foods`);
         return foodsList;
     }
 
@@ -15,8 +15,7 @@ class FoodDataService {
     getFoodByCategoryAndDeliveryService(categoryList, searchDeliveryService) {
         
         const categoryAndDeliveryService = {categoryList: categoryList, deliveryservice: searchDeliveryService}
-        console.log(categoryAndDeliveryService)
-        const foodsList = http.post(`/foodsbycategorydeliveryservice`, categoryAndDeliveryService);
+        const foodsList = http.post(`/foods/bycategorydeliveryservice`, categoryAndDeliveryService);
         return foodsList;
     }
 
@@ -39,6 +38,7 @@ class FoodDataService {
     createFood(data) {
         return http.post("/foods", data);
     }
+
 
 }
 

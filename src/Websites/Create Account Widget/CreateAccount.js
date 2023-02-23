@@ -5,8 +5,9 @@ import Form from "react-bootstrap/Form";
 import InputGroup from "react-bootstrap/InputGroup";
 import Row from "react-bootstrap/Row";
 import AccountDataService from "../../services/account";
-import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next"
+import Container from "react-bootstrap/Container"
+import { ToastContainer, toast } from "react-toastify";
 
 
 
@@ -57,21 +58,19 @@ function CreateAccountWebsite() {
         AccountDataService.createNewAccountAndGetToken(newUser)
             .then(async (response) => {
                 if (response.data.token) {
-                    await setToken(response.data.token)
+                    // await setToken(response.data.token)
                     window.location.reload();
-                } else {
-                    handleNewAccountError(response)
                 }
+            })
+            .catch((error) => {
+                    console.log(error)
+                    handleNewAccountError(error)
             })
     }
 
-    async function setToken(token) {
-        localStorage.setItem("token", token);
-        toast.success("Registered Successfully");
-    }
-
     function handleNewAccountError(inputMessage) {
-        toast.error(inputMessage)
+        console.log(inputMessage.response.data)
+        toast(inputMessage.response.data)
     }
 
 
@@ -80,10 +79,12 @@ function CreateAccountWebsite() {
     }
 
     return (
-        <div>
-
+        <Container>
+            <br />
+            <br />
+            <Col md={{ span: 8, offset: 3 }}>
             <h1>{t("create_account")}</h1>
-
+            
             <Form noValidate validated={validated} onSubmit={handleSubmit}>
                 <Row className="mb-3">
                     <Form.Group as={Col} md="4">
@@ -154,7 +155,7 @@ function CreateAccountWebsite() {
                                 {t("insert_phone_number")}
                             </Form.Control.Feedback>
                         </InputGroup>
-                        
+                        <br />
                     </Form.Group>
                     <Form.Group as={Col} md="4">
                         <Form.Label>{t("kakao_id")} ({t("optional")}): </Form.Label>
@@ -169,10 +170,11 @@ function CreateAccountWebsite() {
                         </InputGroup>
                     </Form.Group>
                 </Row>
-                <Button type="submit">{t("create_account")}</Button>  {t("account_existing")} <strong><a href="/login">{t("go_login")}</a></strong>
+                <Button size="lg" type="submit" className="border-0" style={{backgroundColor: "#ecfdff", color: "gray"}}>{t("create_account")}</Button>  {t("account_existing")} <strong><a href="/login">{t("go_login")}</a></strong>
             </Form>
-           
-        </div>
+        </Col>
+        <ToastContainer />
+        </Container>
     );
 }
 

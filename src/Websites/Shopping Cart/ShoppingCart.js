@@ -1,137 +1,51 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Table from "react-bootstrap/Table";
 import Button from "react-bootstrap/Button";
-import { useState } from "react";
-import account from "../../services/account";
+import {Link} from "react-router-dom"
 import { useTranslation } from "react-i18next"
-
+import Dropdown from "react-bootstrap/Dropdown"
+import CloseButton from "react-bootstrap/CloseButton";
+import Container from "react-bootstrap/Container"
+import { useSelector, useDispatch } from "react-redux"
+import storedRedux from "../../redux/store/store";
+import { addToShoppingCart, deleteAllFromShoppingCart, deleteFromShoppingCart, getShoppingCartListFromServerAndSetDynamicShoppingCart } from "../HomePage Widgets/master/ShoppingCart";
+import Col from "react-bootstrap/Col"
+import Row from "react-bootstrap/Row"
 
 export default function ShoppingCart() {
     const { t } = useTranslation()
+    const cartList = useSelector(state=>state.cartList)
+    const dynamicCart = useSelector(state=>state.dynamicCart)
+    const dispatch = useDispatch()
 
-    const [dynamicShoppingCart, setDynamicShoppingCart] = useState({});
-    const [shoppingCartList, setShoppingCartList] = useState([])
-    const [totalPrice, setTotalPrice] = useState(0)
-    const token = localStorage.getItem("token") ? localStorage.getItem("token") : null;
+    const [finalPrice, setFinalPrice] = useState(0)
+    const [addedPrice, setAddedPrice] = useState(0)
 
-    useEffect(() => {
-        async function handleShoppingCart() {
-            const shoppingCart = await getShoppingCart()
-            setShoppingCartList(shoppingCart)
-        }
-        handleShoppingCart()
-    }, [])
+    function handleCloseClick(e) {
+        const food = JSON.parse(e.target.id)
+        dispatch(deleteAllFromShoppingCart(food))
+    }
 
 
-    useEffect(() => {
-        // async function handleDynamicShoppingCart() {
-        //     let dynamicShoppingCart
-        //     if (!token) {
-        //         dynamicShoppingCart = await getDynamicShoppingCartFromLocalStorage()
-        //         setShoppingCartList(dynamicShoppingCart)
-        //         setDynamicShoppingCart(dynamicShoppingCart);
-        //     } else {
-        //         dynamicShoppingCart = await getDynamicShoppingCart()
-        //         setDynamicShoppingCart(dynamicShoppingCart);
-        //     }
-        // }
-        // handleDynamicShoppingCart()
-        
-        const currentTotalCost = getTotalCost()
+    async function shoppingCartChange() {
+        const newDynamicCart = storedRedux.getState().dynamicCart
+        const currentTotalCost = getTotalCost(newDynamicCart)
         setTotalPrice(currentTotalCost)
-    }, [shoppingCartList])
-
-
-    async function getShoppingCart() {
-        var shoppingCart = [];
-        if (!token) {
-            if (!sessionStorage.getItem("shoppingCart")) {
-                sessionStorage.setItem("shoppingCart", JSON.stringify([]))
-                shoppingCart = [];
-            }
-            else {
-                const newShoppingCart = JSON.parse(sessionStorage.getItem("shoppingCart"));
-                console.log(newShoppingCart)
-                shoppingCart = await getShoppingCartFromLocalStroage(newShoppingCart)
-            }
-        } else {
-            await account.getShoppingCartFromToken(token)
-                .then(response => {
-                    shoppingCart = response.data
-                })
-        }
-        console.log(shoppingCart)
-        return shoppingCart; 
+        // window.location.reload()
+        const currentAddedCost = getAddedCost(newDynamicCart)
+        setAddedPrice(currentAddedCost)
+        const currentFinalCost = getFinalCost(currentTotalCost, currentAddedCost)
+        setFinalPrice(currentFinalCost)
     }
 
-    async function getShoppingCartFromLocalStroage(inputCart) {
-        const inputShoppingCart = {};
-        for (let index = 0; index < inputCart.length; index++) {
-            if (inputCart[index].food_id in inputShoppingCart) {
-                inputShoppingCart[inputCart[index].food_id].amount++;
-            }
-            else {
-                inputShoppingCart[inputCart[index].food_id] = 
-                {food_name: inputCart[index].food_name, delivered_by: inputCart[index].delivered_by, price: inputCart[index].price, amount: 1}
-            }
-        }
+    storedRedux.subscribe(shoppingCartChange)
 
-        console.log(inputShoppingCart)
+    // const [shoppingCartList, setShoppingCartList] = useState([])
+    const [totalPrice, setTotalPrice] = useState(0)
 
-        const newShoppingCart = []
-
-        for (var currentFood in inputShoppingCart) {
-            newShoppingCart.push(inputShoppingCart[currentFood])
-        }
-        return newShoppingCart;
-    }
-
-    // async function getDynamicShoppingCart() {
-    //     const inputShoppingCart = {};
-    //     console.log(shoppingCartList)
-    //     const adjustedShoppingCart = getShoppingCartListFromInputCart(shoppingCartList)
-    //     for (let index = 0; index < adjustedShoppingCart.length; index++) {
-    //         if (adjustedShoppingCart[index].food_id in inputShoppingCart) {
-    //             inputShoppingCart[adjustedShoppingCart[index].food_id].Amount++;
-    //         }
-    //         else {
-    //             inputShoppingCart[adjustedShoppingCart[index].food_id] = 
-    //             {Food: adjustedShoppingCart[index], Amount: 1}
-    //         }
-    //     }
-    //     console.log(inputShoppingCart)
-    //     return inputShoppingCart
-    // }
-
-    // async function getDynamicShoppingCartFromLocalStorage() {
-    //     const inputShoppingCart = {};
-    //     for (let index = 0; index < shoppingCartList.length; index++) {
-    //         if (shoppingCartList[index].food_id in inputShoppingCart) {
-    //             inputShoppingCart[shoppingCartList[index].food_id].Amount++;
-    //         }
-    //         else {
-    //             inputShoppingCart[shoppingCartList[index].food_id] = 
-    //             {Food: shoppingCartList[index], Amount: 1}
-    //         }
-    //     }
-    //     console.log(inputShoppingCart)
-    //     return inputShoppingCart
-    // }
-
-    // function getShoppingCartListFromInputCart(inputCart) {
-    //     const shoppingCart = []
-    //     for (let currentFoodIndex = 0; currentFoodIndex < inputCart.length; ++currentFoodIndex) {
-    //         for (let amount = 0; amount < inputCart[currentFoodIndex].amount; ++amount) {
-    //             shoppingCart
-    //                 .push(
-    //                     {food_id: inputCart[currentFoodIndex].food_id, food_name: inputCart[currentFoodIndex],
-    //                         category: inputCart[currentFoodIndex].category, price: inputCart[currentFoodIndex].price,
-    //                             delivered_by: inputCart[currentFoodIndex].delivered_by
-    //                 })
-    //         }
-    //     }
-    //     return shoppingCart;
-    // }
+    useEffect(() => {
+    dispatch(getShoppingCartListFromServerAndSetDynamicShoppingCart())
+    }, [])
 
 
     function getHTMLArray() {
@@ -139,18 +53,47 @@ export default function ShoppingCart() {
         return returnIndividualHTML(outputList)
     }
 
+    function handleSubtract(e) {
+        const food = JSON.parse(e.target.className)
+        dispatch(deleteFromShoppingCart(food, 1))
+    } 
+
+    function handleAdd(e) {
+        const food = JSON.parse(e.target.className)
+        dispatch(addToShoppingCart(food, 1))
+    }
+
+
+
     function getHTMLArrayFromDynamicShoppingCart() {
+        const amounts = []
+        for (let amount = 0; amount <= 10; ++amount) {
+            amounts.push(amount)
+        }
         const outputList = [];
         var itemNumber = 0;
-        console.log(shoppingCartList)
-        for (let index = 0; index < shoppingCartList.length; ++index) {
+        for (let key in dynamicCart) {
             itemNumber++;
             outputList.push(<tr>
                 <td>{itemNumber}</td>
-                <td>{shoppingCartList[index].food_name}</td>
-                <td>{shoppingCartList[index].amount}</td>
-                <td>{shoppingCartList[index].delivered_by}</td>
-                <td>{(shoppingCartList[index].price * shoppingCartList[index].amount).toFixed(2)}</td>
+                <td>{dynamicCart[key].Food.food_name} </td>
+                <td>
+                <Row>
+                    <Col>
+                        <Link className={JSON.stringify(dynamicCart[key].Food)} onClick={handleSubtract} style={{textDecoration: 'none', color: "red"}}>-</Link>
+                            &nbsp;{dynamicCart[key].Amount}&nbsp;
+                        <Link className={JSON.stringify(dynamicCart[key].Food)} onClick={handleAdd} style={{textDecoration: 'none', color: "green"}}>+</Link>
+                    </Col>
+                    <Col md={{offset: 1}}>
+                        <CloseButton
+                            id={JSON.stringify(dynamicCart[key].Food)} 
+                            onClick={handleCloseClick}
+                        />
+                    </Col>
+                </Row>
+                </td>
+                <td>{dynamicCart[key].Food.delivered_by}</td>
+                <td>{(dynamicCart[key].Food.price * dynamicCart[key].Amount).toFixed(2)}</td>
             </tr>)
         }
         return outputList
@@ -164,18 +107,39 @@ export default function ShoppingCart() {
         })
     }
 
-    function getTotalCost() {
+    function getTotalCost(inputDynamicCart) {
         var totalPrice = 0;
-        for (let foodIndex = 0; foodIndex < shoppingCartList.length; foodIndex++) {
-            totalPrice += shoppingCartList[foodIndex].price * shoppingCartList[foodIndex].amount;
+        for (let key in inputDynamicCart) {
+            totalPrice += inputDynamicCart[key].Food.price * inputDynamicCart[key].Amount;
         }
         return totalPrice.toFixed(2)
     }
 
+    function getAddedCost(inputDynamicCart) {
+        var addedPrice = 0;
+        for (let key in inputDynamicCart) {
+            addedPrice += inputDynamicCart[key].Amount * 0.99
+        
+        }
+        return addedPrice.toFixed(2)
+    }
+    
+    function getFinalCost(totalPrice, addedPrice) {
+        return (Number(totalPrice) + Number(addedPrice)).toFixed(2)
+    }
+
     return (
         <div>
+            <div className="jumbotron">
+                <Container>
 
-            장바구니:
+                    <h1 className="display-4">{t("shopping_cart")}</h1>
+                    <p className="lead">
+                        {t("shopping_cart_description")}
+                    </p>
+                </Container>
+            </div>
+        <Container>
             
             <Table bordered hover>
                 <thead>
@@ -191,16 +155,60 @@ export default function ShoppingCart() {
                     {getHTMLArray()}
                     
                     <tr>
-                        <td colSpan={4} text-align="right">{t("total_price")}:</td>
+                        <td colSpan={4} text-align="right">{t("food_price")}:</td>
                         <td>{totalPrice}</td>
                     </tr>
                 </tbody>
 
             </Table>
 
-            <Button>구매하기</Button>
-            <Button href="/">더 돌아보기</Button>
+            
+            {/* <Row>
+                <div>
+                    <Link style={{ textDecoration: 'none', color: 'black' }} to="/">
+                        <i class="bi bi-chevron-double-left"></i>{t("see_more_foods")}
+                    </Link>
+                </div>
+                <div >
+                    <Link to="/purchase" className="ml-auto">
+                        {t("purchase")} ({t("total_price")}: ${totalPrice})
+                    </Link>
+                </div>
+                    
+                    
+            </Row> */}
 
+            <div class="d-flex justify-content-between">
+                <div>
+                </div>
+                <div>
+                    {t("service_fee")}: {addedPrice}
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <div>
+                </div>
+                <div>
+                    {t("total_price")}: {finalPrice}
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-between">
+                <div>
+                    <Link style={{ textDecoration: 'none', color: 'black' }} to="/">
+                        <i className="bi bi-chevron-double-left"></i>{t("see_more_foods")}
+                    </Link>
+                </div>
+                <div>
+                    <Button style={{backgroundColor: "#77cc6d"}} className="border-0 rounded-0" href="/purchase">
+                        {t("purchase")}
+                    </Button>
+                </div>
+            </div>
+            &nbsp;
+
+        </Container>
         </div>
     )
     

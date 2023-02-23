@@ -3,7 +3,7 @@ import http from "../http-common";
 class deliveryServiceDataService {
 
     getAllDeliveryServices() {
-        const deliveryServicesList = http.get(`/delivery_services`);
+        const deliveryServicesList = http.get(`/deliveryservices/delivery_services`);
         return deliveryServicesList;
     }
 
@@ -14,32 +14,32 @@ class deliveryServiceDataService {
     }
 
     setNewRating(newRatingInformation) {
-        http.post(`/updaterating`, newRatingInformation);
+        http.post(`/deliveryservices/updaterating`, newRatingInformation);
     }
 
     getAllDeliveryServiceRatings() {
-        const deliveryServicesRatingsList = http.get(`/getratings`)
+        const deliveryServicesRatingsList = http.get(`/deliveryservices/getratings`)
         return deliveryServicesRatingsList;
     }
 
     getDeliveryServiceRating(deliveryService) {
-        const rating = http.post("/getrating", deliveryService)
+        const rating = http.post("/deliveryservices/getrating", deliveryService)
         return rating;
     }
 
     // MOVED TO PYTHON
     deleteDeliveryService(id) {
-        return http.delete(`/delivery_services/${id}`);
+        return http.delete(`/deliveryservices/delivery_services/${id}`);
     }
 
     // MOVED TO PYTHON
     updateDeliveryService(id, data) {
-        return http.put(`/delivery_services/${id}`, data);
+        return http.put(`/deliveryservices/delivery_services/${id}`, data);
     }
 
     // MOVED TO PYTHON
     createDeliveryService(data) {
-        return http.post("/delivery_services", data);
+        return http.post("/deliveryservices/delivery_services", data);
     }
 
 }
